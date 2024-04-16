@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>peko Lunch</title>
+</head>
+<body>
+    <h1>peko Lunch</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label for="id_email">メールアドレス：</label>
+            <input type="email" name="email" id="email" required>
+        </div>
+        <div>
+            <label for="id_password">パスワード：</label>
+            <input type="password" name="password" id="id_password" required>
+        </div>
+        <button type="submit">ログイン</button>
+    </form>
+    <p><a href="{% url 'accounts:regist' %}">新規アカウント登録</a></p>
+</body>
