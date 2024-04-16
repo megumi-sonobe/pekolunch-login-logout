@@ -6,6 +6,12 @@
 </head>
 <body>
     <h1>peko Lunch</h1>
+    {% if messages %}
+        {% for message in messages %}
+        <div> {{ message.message }}</div>
+        {% endfor %}
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
         <div>
