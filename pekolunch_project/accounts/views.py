@@ -11,12 +11,12 @@ class HomeView(LoginRequiredMixin,TemplateView):
     template_name = 'home.html'
     
 class RegistUserView(CreateView):
-    template_name = 'regist.html'
+    template_name = 'accounts/regist.html'
     form_class = RegistForm
     success_url = '/accounts/user_login/'
     
 class UserLoginView(FormView):
-    template_name = 'user_login.html'
+    template_name = 'accounts/user_login.html'
     form_class = UserLoginForm
     
     def post(self,request,*args,**kwargs):
