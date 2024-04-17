@@ -6,6 +6,7 @@
 </head>
 <body>
     <h1>新規アカウント登録</h1>
+
     <form method="post">
         {% csrf_token %}
         <div>
@@ -21,12 +22,29 @@
         <div>
             <label for="id_password">パスワード：</label>
             <input type="password" name="password" id="id_password" required>
+
         </div>
 
         <div>
             <label for="id_password2">パスワード再入力：</label>
-            <input type="password" name="password2" id="id_password2" required>
+            <input type="password" name="confirm_password" id="id_password2" required>
+            {% if form.confirm_password.errors %}
+                <ul>
+                {% for error in form.confirm_password.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            
+            {% if form.password.errors %}
+                <ul>
+                {% for error in form.password.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
         </div>
+
 
         <button type="submit">登録</button>
     </form>

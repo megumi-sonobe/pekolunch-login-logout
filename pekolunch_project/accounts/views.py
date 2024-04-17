@@ -1,13 +1,13 @@
 from django.shortcuts import render,redirect
 from django.views.generic.edit import CreateView,FormView
 from django.views.generic.base import TemplateView,View
-from.forms import RegistForm,UserLoginForm
+from .forms import RegistForm,UserLoginForm
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class HomeView(TemplateView):
+class HomeView(LoginRequiredMixin,TemplateView):
     template_name = 'home.html'
     
 class RegistUserView(CreateView):
