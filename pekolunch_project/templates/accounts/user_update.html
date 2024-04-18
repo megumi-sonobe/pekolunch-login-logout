@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>アカウント情報更新</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label for="id_username">名前/ニックネーム：</label>
+            <input type="text" name="username" id="id_username" value="{{ form.username.value }}" required>
+        </div>
+
+        <div>
+            <label for="id_email">メールアドレス：</label>
+            <input type="email" name="email" id="id_email" value="{{ form.email.value }}" required>
+        </div>
+
+        <div>
+            <label for="id_current_password">現在のパスワード：</label>
+            <input type="password" name="current_password" id="id_current_password" required>
+            {% if form.current_password.errors %}
+                <ul>
+                {% for error in form.current_password.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="id_new_password">新しいパスワード：</label>
+            <input type="password" name="new_password" id="id_new_password" required>
+            
+        </div>
+
+        <div>
+            <label for="id_confirm_password">新しいパスワード再入力：</label>
+            <input type="password" name="confirm_password" id="id_confirm_password" required>
+        </div>
+        <div>
+             {% if form.new_password.errors %}
+                <ul>
+                {% for error in form.new_password.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %} 
+            {% if form.confirm_password.errors %}
+                <ul>
+                {% for error in form.confirm_password.errors %}
+                    <li style="color: red;">{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %} 
+        </div>
+
+
+        <button type="submit">変更</button>
+    </form>
+{% endblock %}
+
+
