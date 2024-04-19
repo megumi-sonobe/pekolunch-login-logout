@@ -1,11 +1,16 @@
+from django.db.models.base import Model as Model
+from django.db.models.query import QuerySet
+from django.forms import BaseModelForm
+from django.http import HttpResponse
 from django.shortcuts import render,redirect
 from django.views.generic.edit import CreateView,FormView,UpdateView
 from django.views.generic.base import TemplateView,View
-from .forms import RegistForm,UserLoginForm,UserUpdateForm
+from .forms import RegistForm,UserLoginForm,UserUpdateForm,MyPageForm
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.contrib.messages import get_messages
 
 class HomeView(LoginRequiredMixin,TemplateView):
     template_name = 'home.html'
@@ -14,6 +19,11 @@ class HomeView(LoginRequiredMixin,TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = self.request.user
         context['my_page_url'] = reverse_lazy('accounts:my_page')
+        
+        messages = get_messages(self.request)
+        for message in messages:
+            context['message'] = message
+        
         return context
     
         
@@ -86,15 +96,20 @@ class UserUpdateView(LoginRequiredMixin,UpdateView):
             self.request.user.set_password(new_password)
             self.request.user.save()
         
+        messages.success(self.request,'アカウント情報を更新しました。もう一度ログインしてください。')
+        return redirect('accounts:home')
+    
+    
+    
+class MyPageView(LoginRequiredMixin,UpdateView):
+    template_name = 'accounts/my_page.html'
+    form_class = MyPageForm
+    success_url = reverse_lazy('accounts:home')
+    
+    def get_object(self, queryset=None):
+        return self.request.user
+    
+    def form_valid(self, form):
+        messages.success(self.request,'マイページを更新しました。')
         return super().form_valid(form)
     
-    
-    
-class MyPageView(LoginRequiredMixin,TemplateView):
-    template_name = 'accounts/my_page.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        context['user_update_url'] = reverse_lazy('accounts:user_update')
-        return context

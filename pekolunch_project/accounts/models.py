@@ -3,6 +3,8 @@ from django.contrib.auth.models import(
     BaseUserManager,AbstractBaseUser,PermissionsMixin
 )
 from django.urls import reverse_lazy
+from django.utils import timezone
+from choices import COOKING_TIME_CHOICES
 
 
 class UserManager(BaseUserManager):
@@ -37,6 +39,15 @@ class Users(AbstractBaseUser,PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     
+    image_url = models.ImageField(upload_to='images/',null=True,blank=True)
+    adult_count = models.IntegerField(default=2)
+    children_count = models.IntegerField(default=0)
+    
+    cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
     
@@ -45,6 +56,8 @@ class Users(AbstractBaseUser,PermissionsMixin):
     def get_absolute_url(self):
         return reverse_lazy('accounts:home')
     
-    
-        
-    
+    def save(self,*args,**kwargs):
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        super(Users,self).save(*args,**kwargs)
