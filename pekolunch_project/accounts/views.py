@@ -110,6 +110,15 @@ class MyPageView(LoginRequiredMixin,UpdateView):
         return self.request.user
     
     def form_valid(self, form):
+        user = form.save(commit=False)
+    
+        image_url = form.cleaned_data.get('image_url',None)
+        
+        if image_url:
+            user.image_url = image_url
+            
+        user.save()
         messages.success(self.request,'マイページを更新しました。')
+        
         return super().form_valid(form)
     
