@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'meal_planner',
+    'recipes',
 ]
 
 AUTH_USER_MODEL = 'accounts.Users'
