@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from choices import COOKING_TIME_CHOICES,MENU_CHOICES
+from choices import COOKING_TIME_CHOICES,COOKING_METHOD_CHOICES,MENU_CHOICES
 from accounts.models import Users
 
 
@@ -15,7 +15,8 @@ class Recipe(models.Model):
     food_categories = models.ManyToManyField(FoodCategory,through='RecipeFoodCategory')
     recipe_name = models.CharField(max_length=32)
     menu_category = models.IntegerField(choices=MENU_CHOICES)
-    cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=True)
+    cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=False)
+    cooking_method = models.IntegerField(choices=COOKING_METHOD_CHOICES,null=False)
     image_url = models.ImageField(upload_to='recipes/images/',null=True,blank=True)
     share = models.IntegerField(default=1)
     is_avoid_main_dish = models.IntegerField(default=0)
