@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'accounts',
     'meal_planner',
     'recipes',
+    'bootstrap_datepicker_plus',
 ]
 
 AUTH_USER_MODEL = 'accounts.Users'
