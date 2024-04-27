@@ -20,9 +20,10 @@ class HomeView(LoginRequiredMixin,TemplateView):
         context['user'] = self.request.user
         context['my_page_url'] = reverse_lazy('accounts:my_page')
         
-        messages = get_messages(self.request)
-        for message in messages:
-            context['message'] = message
+        # messages = get_messages(self.request)
+        # for message in messages:
+        #     context['message'] = message
+        context['messages'] = list(get_messages(self.request))
         
         return context
     

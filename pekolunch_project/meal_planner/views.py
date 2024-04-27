@@ -20,6 +20,7 @@ def create_meal_plans(request):
                     meal_plan.save()
                     
                 meal_date += timedelta(days=1)
+                selected_date = form.cleaned_data['meal_date']
                     
             return redirect('meal_planner_edit', meal_date=(meal_date - timedelta(days=1)).strftime('%Y-%m-%d'))
 

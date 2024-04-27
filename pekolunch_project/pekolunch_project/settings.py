@@ -41,8 +41,9 @@ INSTALLED_APPS = [
     'accounts',
     'meal_planner',
     'recipes',
-    'bootstrap_datepicker_plus',
+    
 ]
+
 
 AUTH_USER_MODEL = 'accounts.Users'
 
@@ -73,6 +74,8 @@ TEMPLATES = [
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = 'pekolunch_project.wsgi.application'
 

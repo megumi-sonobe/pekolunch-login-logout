@@ -3,6 +3,7 @@ from.views import(
     RegistUserView,HomeView,UserLoginView,UserLogoutView,
     UserUpdateView,MyPageView
 )
+from meal_planner.views import create_meal_plans
 
 app_name = 'accounts'
 urlpatterns = [
@@ -12,4 +13,5 @@ urlpatterns = [
     path('user_logout/',UserLogoutView.as_view(),name='user_logout'),
     path('user_update/',UserUpdateView.as_view(),name='user_update'),
     path('my_page/',MyPageView.as_view(),name='my_page'),
+    path('create_meal_plans/',create_meal_plans,name='create_meal_plans'),
 ]

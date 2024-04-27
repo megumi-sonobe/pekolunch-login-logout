@@ -1,63 +1,61 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="utf-8">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>{% block title %}peko Lunch{% endblock %}</title>
-    </head>
-    <body>
-    {% comment %} <header>
-        <h1>peko Lunch</h1>
-    </header> {% endcomment %}
-    <nav class="navbar navbar-expand navbar-light bg-light">
-        <a class="navbar-brand" href="#">peko Lunch</a>
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample02" aria-controls="navbarsExample02" aria-expanded="false" aria-label="Toggle navigation">
+    <!-- FullCalendarのスクリプトを読み込む -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
+</head>
+<body>
+<nav class="navbar navbar-expand navbar-light bg-light">
+    <a class="navbar-brand" href="#">peko Lunch</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample02" aria-controls="navbarsExample02" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarsExample02">
+    </button>
+    <div class="collapse navbar-collapse" id="navbarsExample02">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'accounts:home'%}">ホーム <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'accounts:my_page'%}">マイページ</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">マイレシピ登録</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">料理一覧</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">献立編集画面</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'accounts:user_logout' %}">ログアウト</a>
-          </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'accounts:home'%}">ホーム <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'accounts:my_page'%}">マイページ</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">マイレシピ登録</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">料理一覧</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">献立編集画面</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'accounts:user_logout' %}">ログアウト</a>
+            </li>
         </ul>
-        {% comment %} <form class="form-inline my-2 my-md-0">
-          <input class="form-control" type="text" placeholder="Search">
-        </form> {% endcomment %}
-        </div>
-    </nav>
+    </div>
+</nav>
 
-        {% comment %} <nav class="navbar navbar-expand-lg navbar-light bg-light>" {% endcomment %}
+<main>
+    <!-- ページの特定の部分を表示 -->
+    {% block content %}
+    {% endblock %}
+</main>
 
-    {% comment %} <nav>
-        <a href="{% url 'accounts:home' %}">ホーム</a> {% endcomment %}
-        {% comment %} <a href="{% url '' %}">マイページ</a>
-        <a href="{% url '' %}">マイレシピ登録</a>
-        <a href="{% url '' %}">料理一覧</a>
-        <a href="{% url '' %}">献立編集画面</a>
-        <a href="{% url 'user_logout' %}">ログアウト</a> {% endcomment %}
-    {% comment %} </nav> {% endcomment %}
-
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
+<!-- カレンダーを初期化するスクリプト -->
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        if (calendarEl) {
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth'
+            });
+            calendar.render();
+        }
+    });
+</script>
+{% endblock %}
 </body>
 </html>
-
