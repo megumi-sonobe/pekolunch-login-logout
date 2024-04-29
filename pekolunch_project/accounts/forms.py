@@ -15,6 +15,12 @@ class RegistForm(forms.ModelForm):
     class Meta:
         model = Users
         fields = ['username','email','password']
+        
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if Users.objects.filter(email=email).exists():
+            raise forms.ValidationError('このメールアドレスは既に使用されています。')
+        return email
     
     def clean(self):
         cleaned_data = super().clean()

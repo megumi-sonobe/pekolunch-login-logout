@@ -17,6 +17,13 @@
         <div>
             <label for="id_email">メールアドレス：</label>
             <input type="email" name="email" id="id_email" required>
+            {% if form.email.errors %}
+                <ul>
+                {% for error in form.email.errors %}
+                    <li style="color:red;">{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
         </div>
 
         <div>

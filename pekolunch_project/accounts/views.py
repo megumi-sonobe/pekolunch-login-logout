@@ -39,10 +39,12 @@ class RegistUserView(CreateView):
         user.set_password(password)
         user.save()
         print("ユーザーが保存されました",user)
+        messages.success(self.request,'アカウントを登録しました。ログインしてください。')
         
         return redirect(self.success_url)
     
     def form_invalid(self, form):
+        self.request.session['django.contrib.messeges.error'] = []
         print("フォームのデータが無効:", form.errors)
         messages.error(self.request, "入力された情報に問題があります。正しい情報を入力してください。")
         return super().form_invalid(form)

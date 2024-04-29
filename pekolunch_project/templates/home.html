@@ -2,17 +2,77 @@
 
 {% block content %}
     <div id='calendar'></div>
+    <div id="create-meal-plan-btn-container">
+        <p id="selectedDateDisplay">献立を作成する日：</p> <!-- 選択された日付を表示するための要素 -->
+        <button type="submit">献立作成</button>
+        <form id="dateForm" method="post" action="{% url 'meal_planner:create_meal_plans' %}">
+            {% csrf_token %}
+            <input type="hidden" id="selectedDate" name="selected_date">
+            
+            
+        </form>
+    </div>
+    <style>
+        .selected-day{
+            background-color: #ADD8E6;
+        }
+    </style>
 {% endblock %}
+
 
 {% block javascript %}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar/locales/ja.js'></script> <!-- 日本語言語ファイルを読み込む -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth'
+            initialView: 'dayGridMonth',
+            locale: 'ja', // 日本語を適用する
+            headerToolbar:{
+                left:'prev',
+                center:'title',
+                right:'next'
+            },
+            titleFormat:{year:'numeric',month:'long'},
+            selectable: true,
+            select: function(info){
+                const startDate = info.start;
+                const endDate = info.end;
+            // 選択された日付の範囲を示す文字列を作成
+                const dateRangeString = formatDateRange(startDate, endDate);
+            // 選択された日付の範囲を表示
+                document.getElementById('selectedDateDisplay').textContent = "献立を作成する日："+dateRangeString;
+            
+            // 選択された日付をフォームに設定
+                document.getElementById('selectedDate').value = info.startStr;
+            },
+            
+            dayMaxEvents: true,
+            selectOverlap: false,
+            
+            selectAllow: function(selectInfo){
+                var maxSelectableDays = 7;
+                var selectRange = selectInfo.end.getTime() - selectInfo.start.getTime();
+
+                return selectRange <= maxSelectableDays *24 *60 *60 *1000;
+            },
+            selectClassNames:[{
+                selector: 'td.fc-day',
+                className: 'selected-day'
+            }]
         });
         calendar.render();
     });
+    function formatDateRange(startDate,endDate) {
+        const startDay = startDate.getDate();
+        const startMonth = startDate.getMonth() + 1;
+        const endDay = endDate.getDate();
+        const endMonth = endDate.getMonth() + 1;
+
+        return `${startMonth}月${startDay}日〜${endMonth}月${endDay}日`;
+    }
+
+
 </script>
 {% endblock %}
