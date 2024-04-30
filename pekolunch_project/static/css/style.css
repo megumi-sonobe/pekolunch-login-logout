@@ -1,0 +1,13 @@
+
+.selected {
+    background-color: #FFC0CB !important;
+}
+
+
+#create-meal-plan-btn-container{
+    text-align: center;
+}
+
+#selectedDateDisplay {
+    text-align: center;
+}

@@ -1,22 +1,21 @@
 {% extends 'base.html' %}
+{% block title %}
+    ホーム-peko Lunch
+{% endblock%}
+
 
 {% block content %}
     <div id='calendar'></div>
     <div id="create-meal-plan-btn-container">
         <p id="selectedDateDisplay">献立を作成する日：</p> <!-- 選択された日付を表示するための要素 -->
-        <button type="submit">献立作成</button>
+        
         <form id="dateForm" method="post" action="{% url 'meal_planner:create_meal_plans' %}">
             {% csrf_token %}
             <input type="hidden" id="selectedDate" name="selected_date">
-            
+            <button type="submit">献立作成</button>
             
         </form>
     </div>
-    <style>
-        .selected-day{
-            background-color: #ADD8E6;
-        }
-    </style>
 {% endblock %}
 
 
@@ -36,16 +35,30 @@
             },
             titleFormat:{year:'numeric',month:'long'},
             selectable: true,
+            selectAllow:function(selectInfo){
+                return selectInfo.start.getTime() === selectInfo.end.getTime();
+            },
             select: function(info){
                 const startDate = info.start;
-                const endDate = info.end;
+                let endDate = info.end;
+
+                endDate.setDate(endDate.getDate() -1);
+
+                if(endDate !== null && startDate.toDateString() === endDate.toDateString()){
+                    endDate = null;
+                }
             // 選択された日付の範囲を示す文字列を作成
                 const dateRangeString = formatDateRange(startDate, endDate);
             // 選択された日付の範囲を表示
                 document.getElementById('selectedDateDisplay').textContent = "献立を作成する日："+dateRangeString;
             
             // 選択された日付をフォームに設定
-                document.getElementById('selectedDate').value = info.startStr;
+                document.getElementById('selectedDate').value = startDate.toISOString().slice(0,10);
+
+                if (endDate === null){
+                    const formattedStartDate = startDate.toLocaleDateString('ja',{month:'long',day:'numeric'});
+                    document.getElementById('selectedDateDisplay').textContent = "献立を作成する日：" + formattedStartDate;
+                }
             },
             
             dayMaxEvents: true,
@@ -55,7 +68,7 @@
                 var maxSelectableDays = 7;
                 var selectRange = selectInfo.end.getTime() - selectInfo.start.getTime();
 
-                return selectRange <= maxSelectableDays *24 *60 *60 *1000;
+                return selectRange > 0 && selectRange <= maxSelectableDays *24 *60 *60 *1000;
             },
             selectClassNames:[{
                 selector: 'td.fc-day',
@@ -67,12 +80,17 @@
     function formatDateRange(startDate,endDate) {
         const startDay = startDate.getDate();
         const startMonth = startDate.getMonth() + 1;
-        const endDay = endDate.getDate();
-        const endMonth = endDate.getMonth() + 1;
 
-        return `${startMonth}月${startDay}日〜${endMonth}月${endDay}日`;
+        if (!endDate){
+            return `${startMonth}月${startDay}日`;
+        } else {
+            const endDay = endDate.getDate();
+            const endMonth = endDate.getMonth() + 1;
+            return `${startMonth}月${startDay}日〜${endMonth}月${endDay}日`;
+        }
     }
 
 
 </script>
 {% endblock %}
+
