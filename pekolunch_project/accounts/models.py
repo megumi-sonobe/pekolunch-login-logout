@@ -46,7 +46,7 @@ class Users(AbstractBaseUser,PermissionsMixin):
     cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

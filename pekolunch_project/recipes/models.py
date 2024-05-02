@@ -1,7 +1,9 @@
+from typing import Iterable
 from django.db import models
 from django.utils import timezone
 from choices import COOKING_TIME_CHOICES,COOKING_METHOD_CHOICES,MENU_CHOICES
 from accounts.models import Users
+from django.db.models import Avg
 
 
     
@@ -27,6 +29,25 @@ class Recipe(models.Model):
     
     def __str__(self):
         return self.recipe_name
+    
+    def update_average_rating(self):
+        #レシピ平均評価を更新
+        average_rating = self.user_evaluation_set.aggregate(Avg('evaluation'))['evaluation__avg']
+        if average_rating is not None:
+            self.average_evaluation = round(average_rating,2)
+        else:
+            self.average_evaluation = None
+        self.save()
+        
+    def adjust_ingredient_quantity_for_serving(self,serving,is_child=False):
+        ingredients = self.ingredient_set.all()
+        for ingredient in ingredients:
+            if is_child:
+                serving *= 0.5
+                
+            ingredient.quantity_unit = f"{serving * ingredient.quantity_unit}"
+            ingredient.save()
+        
 
     
 
@@ -55,14 +76,21 @@ class Ingredient(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def adjust_quantity_for_serving(self,serving):
+        quantity, unit = self.quantity_unit.split(' ',1)
+        if serving != 0:
+            self.quantity_unit = f"{float(quantity) / serving} {unit}"
+        self.save()
+        
+    
 class UserEvaluation(models.Model):
     user = models.ForeignKey(Users,on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe,on_delete=models.CASCADE)
     evaluation =models.IntegerField(choices=[(0,'1 star'),(1,'2 star'),(2,'3 star')])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-   
-  
     
-    
-    
+    def save(self, *args,**kwargs):
+        super().save(*args,**kwargs)
+        self.recipe.update_average_rating()
+        
