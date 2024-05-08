@@ -19,10 +19,14 @@ def load_food_categories_from_csv(file_path):
                 }
         return rules
     
+csv_file_path = 'meal_planner/data/food_categories.csv'
+
+RULES = load_food_categories_from_csv(csv_file_path)
+
+    
 def apply_rules(recipes,today,user):
-    rules = load_food_categories_from_csv('path_to_your_file.csv')
-    exclude_food_categories = [category for category,rule in rules.items() if rule['exclude_next_day'] or rule['exclude_next_3_days']]
-         
+    # グローバル変数のRULESを使用する
+    exclude_food_categories = [category for category, rule in RULES.items() if rule['exclude_next_day'] or rule['exclude_next_3_days']]    
     return recipes.exclude(food_categories__food_category_name__in=exclude_food_categories)
 
 

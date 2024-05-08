@@ -85,7 +85,7 @@ class Ingredient(models.Model):
     
 class UserEvaluation(models.Model):
     user = models.ForeignKey(Users,on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe,on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe,on_delete=models.CASCADE,related_name='user_evaluations')
     evaluation =models.IntegerField(choices=[(0,'1 star'),(1,'2 star'),(2,'3 star')])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

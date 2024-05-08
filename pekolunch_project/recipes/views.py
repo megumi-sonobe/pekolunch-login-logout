@@ -26,6 +26,11 @@ class RecipeCreateView(CreateView):
             return JsonResponse({'success':True})
         else:
             return JsonResponse({'success':False,'errors':form.errors})
+        
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
+        return kwargs
     
 class RecipeUpdateView(UpdateView):
     model = Recipe
@@ -44,10 +49,10 @@ class RecipeUpdateView(UpdateView):
             return JsonResponse({'success':False,'errors':form.errors})
 
     
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset=queryset)
-        
-        return obj
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
+        return kwargs
     
 class SaveRatingView(LoginRequiredMixin,View):
     @csrf_exempt
