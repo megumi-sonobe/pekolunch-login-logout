@@ -25,7 +25,14 @@ class CSVUploadForm(forms.Form):
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
-        fields = ['description']
+        fields = ['process_number','description']
+        labels = {
+            'process_number':'プロセス番号',
+            'description':'説明',
+        }
+        widgets = {
+            'process_number': forms.HiddenInput(),  # フォームの表示を非表示にする
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,11 +51,13 @@ class ProcessForm(forms.ModelForm):
 
     
 class IngredientForm(forms.ModelForm):
-    serving = forms.IntegerField(label='',min_value=1)
-    
     class Meta:
         model = Ingredient
         fields = ['ingredient_name','quantity_unit']
+        labels = {
+            'ingredient_name': '材料名',
+            'quantity_unit': '量',
+        }
         
     def save(self,commit=True):
         ingredient = super().save(commit=False)
@@ -70,9 +79,9 @@ class RecipeForm(forms.ModelForm):
     serving = forms.IntegerField(label='人分', min_value=1)
     share = forms.BooleanField(label='全体にシェアする')
     is_avoid_main_dish = forms.BooleanField(label='主菜不要')
-    process_description = forms.CharField(label='作り方', widget=forms.Textarea)
     ingredient_name = forms.CharField(label='材料', max_length=64)
-    
+    process = forms.CharField(label='作り方',max_length=255 )
+
     class Meta:
         model = Recipe
         fields = ['recipe_name','menu_category', 'cooking_time_min', 
@@ -93,38 +102,41 @@ class RecipeForm(forms.ModelForm):
                     label='主な使用食材（5つまで選択）:',
                     required=False,
                     initial=[],
-                    widget=forms.CheckboxSelectMultiple,
+                    widget=forms.CheckboxSelectMultiple,    
                 )
+        else:
+            self.fields['food_categories'] = forms.ModelMultipleChoiceField(
+                queryset=FoodCategory.objects.none(),
+                label='主な使用食材（5つまで選択）:',
+                required=False,
+                initial=[],
+                widget=forms.CheckboxSelectMultiple,
+            )
+            
+        self.fields['process_description'] = forms.CharField(label='説明',widget=forms.Textarea)
+
 
     def save(self, commit=True):
         recipe = super().save(commit=False)
-        process = None
-        ingredient = None
-    
+        ingredient_name = self.cleaned_data.get('ingredient_name')
+        process = self.cleaned_data.get('process')
+        
         if commit:
             serving = self.cleaned_data.get('serving', 1)
             recipe.adjust_ingredient_quantity_for_serving(serving)
-            
-            process_description = self.cleaned_data.get('process_description', '')
-            ingredient_name = self.cleaned_data.get('ingredient_name', '')
-            
-            process = Process.objects.create(recipe=recipe, description=process_description)
-            ingredient = Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name)
-            
             food_categories = self.load_food_categories(self.csv_file_path)
             recipe.food_categories.set(food_categories)
-            
             recipe.save()
-               
-            process.save()
-            ingredient.save()
             
-            recipe.adjust_ingredient_quantity_for_serving(serving)
-    
-        return recipe, process, ingredient
+            Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name)
+            Process.objects.create(recipe=recipe, description=process)
+            
+        recipe.adjust_ingredient_quantity_for_serving(serving)
+ 
+        return recipe
 
     def load_food_categories(self, csv_file_path):
-        food_categories = FoodCategory.objects.none()
+        food_categories = []
         if csv_file_path:
             with open(csv_file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.reader(csvfile)

@@ -30,7 +30,8 @@
 
         <div>
             {{ form.food_categories.label_tag }}
-            <input type="text" id="search-bar" placeholder="食材を検索">
+            <div id="food-categories-container">
+                <input type="text" id="search-bar" placeholder="食材を検索">
                 {{ form.food_categories }}
                 
         </div>
@@ -53,13 +54,12 @@
             {{ form.serving }}
         </div>
 
-        <div id="selected-foods">
-        
-        </div>
-
-
-    <div id="ingredients-container" style="position: relative;">
+        <div id="ingredients-container" style="position: relative;">
         <p style="display: inline-block; margin-right: 10px;">材料：</p>
+        <p>
+            <input type="number" name="serving_size" id="serving_size" min="1" style="width: 50px">
+            <label for="serving_size">人分</label>
+        </p>
         <div id="ingredients-form" style="position:sticky; top:0; z-index:1;">
             
             <table style="display: inline-block;" id="ingredients_table">
@@ -78,17 +78,29 @@
 
             <button type="button" onclick="addIngredient()">材料を追加する</button>
     
-            <p>
-            <input type="number" name="serving_size" id="serving_size" min="1" style="width: 50px">
-            <label for="serving_size">人分</label>
-            </p>
-        </div>
 
-        <div id="process-form">
-            {{ form.process_description.label_tag }}
-            {{ form.process_description }}
         </div>
         
+
+        <div id="process-container" style="position: relative;">
+            <p style="display: inline-block; margin-right: 10px;">作り方：</p>
+            <div id="process-form" style="position: sticky; top: 0; z-index: 1;">
+                <table style="display: inline-block;" id="processes_table">
+                    <tr>
+                        <td>番号</td>
+                        <td>説明</td>
+                    </tr>
+                    {% for form in process_forms %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>  <!-- ここで番号を表示 -->
+                        <td>{{ form.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                
+                <button type="button" onclick="addProcess()">プロセスを追加</button>
+            </div>
+        </div>
 
 
         <input type="hidden" id="rating-value" name="rating-value" value="">
@@ -99,68 +111,7 @@
     </form>
 
     <script>
-        function loadFoodCategories(foodCategories){
-            const foodCategoriesSelect = document.getElementById("food-categories");
-
-            foodCategories.forEach(category => {
-                const option = document.createElement('option');
-                option.text = category;
-                foodCategoriesSelect.add(option);
-            });
-        }
-
-        const loadFoodCategoriesURL = "{% url 'recipes:load_food_categories' %}";
-
-        fetch(loadFoodCategoriesURL) // サーバーサイドのURLを指定
-            .then(response => response.json())
-            .then(data => {
-                loadFoodCategories(data.food_categories);
-                const csvFilePath = 'meal_planner/data/food_categories.csv';
-                loadFoodCategoriesFromCSV(csvFilePath);
-                filterFoodCategories('');
-            })
-            .catch(error => console.error('Error fetching food categories:', error));
-
         
-        // CSVファイルから食材カテゴリを読み込む関数
-        function loadFoodCategoriesFromCSV(csvFilePath) {
-            fetch(csvFilePath)
-                .then(response => response.text())
-                .then(csvData => {
-                    const foodCategories = csvData.split(/\r\n|\n|\r/).map(row => row.trim());
-                    loadFoodCategories(foodCategories);
-                })
-                .catch(error => console.error('CSVファイルの読み込み中にエラーが発生しました:', error));
-        }
-
-        // ページのロード時に実行する処理
-        document.addEventListener("DOMContentLoaded", function () {
-            const csvFilePath = '/static/meal_planner/data/food_categories.csv';  // CSVファイルのパスを指定する
-            loadFoodCategoriesFromCSV(csvFilePath);
-
-            const searchBar = document.getElementById("search-bar");
-            searchBar.addEventListener("input", function () {
-                const searchText = searchBar.value.trim().toLowerCase();
-                filterFoodCategories(searchText);
-            });
-        });
-
-        // セレクトボックス内の食材カテゴリをフィルタリングする関数
-        function filterFoodCategories(searchText) {
-            const foodCategoriesSelect = document.getElementById("food-categories");
-            const options = foodCategoriesSelect.options;
-            for (let i = 0; i < options.length; i++) {
-                const optionText = options[i].text.toLowerCase();
-                if (optionText.includes(searchText)) {
-                    options[i].style.display = "block";
-                } else {
-                    options[i].style.display = "none";
-                }
-            }
-        }
-
-
-
 
         function addIngredient() {
             var table = document.getElementById("ingredients_table");
@@ -214,6 +165,30 @@
             updateRatingDisplay(currentRating);
 
         });
+
+    function addProcess() {
+        // 新しい行を作成
+        var newRow = document.createElement('tr');
+        
+        // 現在表示されている行数を取得
+        var rowCount = document.querySelectorAll('#processes_table tr').length - 1; // ヘッダー行を除外
+        
+        // 新しいプロセス番号をセルに追加
+        var processNumberCell = document.createElement('td');
+        processNumberCell.textContent = rowCount + 1;
+        newRow.appendChild(processNumberCell);
+        
+        // 新しい説明入力欄をセルに追加
+        var descriptionCell = document.createElement('td');
+        var descriptionInput = document.createElement('input');
+        descriptionInput.type = 'text';
+        descriptionInput.name = 'description';  // descriptionフィールドの名前に変更が必要かもしれません
+        descriptionCell.appendChild(descriptionInput);
+        newRow.appendChild(descriptionCell);
+        
+        // テーブルに新しい行を追加
+        document.getElementById('processes_table').appendChild(newRow);
+    }
 
     </script>
 {% endblock %}

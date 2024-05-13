@@ -64,7 +64,7 @@ class RecipeFoodCategory(models.Model):
     
 class Process(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    process_number = models.IntegerField(default=1)
+    process_number = models.PositiveIntegerField(blank=True, null=True)
     description = models.CharField(max_length=255)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -75,6 +75,8 @@ class Process(models.Model):
             last_process = Process.objects.filter(recipe=self.recipe).order_by('-process_number').first()
             if last_process:
                 self.process_number = last_process.process_number + 1
+            else:
+                self.process_number = 1  # 最初のプロセスの場合
         super().save(*args, **kwargs)
     
         
