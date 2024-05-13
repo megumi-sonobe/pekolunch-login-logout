@@ -10,13 +10,26 @@ RULES = {}
 def load_food_categories_from_csv(file_path):
     rules = {}
     with open(file_path, 'r',encoding='utf-8')as file:
-        reader = csv.DictReader(file)
+        reader = csv.reader(file)
+        next(reader)
         for row in reader:
-            food_category_name = row['食材名']
-            rules[food_category_name] = {
-                'exclude_next_day':row.get('翌日除外',False),
-                'exclude_next_3_days':row.get('翌3日除外',False),
+            food_category_name = row[0].strip()
+            is_next_day_excluded = int(row[1])
+            is_next_3_day_excluded = int(row[2])
+            
+            food_category, created = FoodCategory.objects.get_or_create(
+                food_category_name=food_category_name,
+                defaults={
+                    'is_next_day_excluded': is_next_day_excluded,
+                    'is_next_3_day_excluded': is_next_3_day_excluded
                 }
+            )
+            
+            rules[food_category_name] = {
+                'exclude_next_day': is_next_day_excluded,
+                'exclude_next_3_days': is_next_3_day_excluded,
+            }
+            
         return rules
     
 csv_file_path = 'meal_planner/data/food_categories.csv'

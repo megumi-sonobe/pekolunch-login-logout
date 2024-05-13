@@ -29,9 +29,13 @@
         </div>
 
         <div>
-            <label for="{{ form.food_categories.id_for_label }}">{{ form.food_categories.label }}</label>
-            {{ form.food_categories }}
+            {{ form.food_categories.label_tag }}
+            <input type="text" id="search-bar" placeholder="食材を検索">
+                {{ form.food_categories }}
+                
         </div>
+
+
         <div>
             {{ form.image_url.label_tag }}
             {{ form.image_url }}
@@ -47,6 +51,10 @@
         <div>
             {{ form.serving.label_tag }}
             {{ form.serving }}
+        </div>
+
+        <div id="selected-foods">
+        
         </div>
 
 
@@ -76,15 +84,6 @@
             </p>
         </div>
 
-
-
-
-
-        
-
-
-            
-        
         <div id="process-form">
             {{ form.process_description.label_tag }}
             {{ form.process_description }}
@@ -100,6 +99,69 @@
     </form>
 
     <script>
+        function loadFoodCategories(foodCategories){
+            const foodCategoriesSelect = document.getElementById("food-categories");
+
+            foodCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.text = category;
+                foodCategoriesSelect.add(option);
+            });
+        }
+
+        const loadFoodCategoriesURL = "{% url 'recipes:load_food_categories' %}";
+
+        fetch(loadFoodCategoriesURL) // サーバーサイドのURLを指定
+            .then(response => response.json())
+            .then(data => {
+                loadFoodCategories(data.food_categories);
+                const csvFilePath = 'meal_planner/data/food_categories.csv';
+                loadFoodCategoriesFromCSV(csvFilePath);
+                filterFoodCategories('');
+            })
+            .catch(error => console.error('Error fetching food categories:', error));
+
+        
+        // CSVファイルから食材カテゴリを読み込む関数
+        function loadFoodCategoriesFromCSV(csvFilePath) {
+            fetch(csvFilePath)
+                .then(response => response.text())
+                .then(csvData => {
+                    const foodCategories = csvData.split(/\r\n|\n|\r/).map(row => row.trim());
+                    loadFoodCategories(foodCategories);
+                })
+                .catch(error => console.error('CSVファイルの読み込み中にエラーが発生しました:', error));
+        }
+
+        // ページのロード時に実行する処理
+        document.addEventListener("DOMContentLoaded", function () {
+            const csvFilePath = '/static/meal_planner/data/food_categories.csv';  // CSVファイルのパスを指定する
+            loadFoodCategoriesFromCSV(csvFilePath);
+
+            const searchBar = document.getElementById("search-bar");
+            searchBar.addEventListener("input", function () {
+                const searchText = searchBar.value.trim().toLowerCase();
+                filterFoodCategories(searchText);
+            });
+        });
+
+        // セレクトボックス内の食材カテゴリをフィルタリングする関数
+        function filterFoodCategories(searchText) {
+            const foodCategoriesSelect = document.getElementById("food-categories");
+            const options = foodCategoriesSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                const optionText = options[i].text.toLowerCase();
+                if (optionText.includes(searchText)) {
+                    options[i].style.display = "block";
+                } else {
+                    options[i].style.display = "none";
+                }
+            }
+        }
+
+
+
+
         function addIngredient() {
             var table = document.getElementById("ingredients_table");
             var newRow = table.insertRow(-1); // Insert row at the end
@@ -152,5 +214,6 @@
             updateRatingDisplay(currentRating);
 
         });
+
     </script>
 {% endblock %}

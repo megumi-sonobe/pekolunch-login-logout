@@ -8,7 +8,9 @@ from django.db.models import Avg
 
     
 class FoodCategory(models.Model):
-    food_category_name = models.CharField(max_length=32)
+    food_category_name = models.CharField(max_length=32,unique=True)
+    is_next_day_excluded = models.BooleanField(default=False)
+    is_next_3_day_excluded = models.BooleanField(default=False)
     
     def __str__(self):
         return self.food_category_name
@@ -62,11 +64,18 @@ class RecipeFoodCategory(models.Model):
     
 class Process(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    process_number = models.IntegerField(unique=True)
+    process_number = models.IntegerField(default=1)
     description = models.CharField(max_length=255)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # 新しいプロセスの場合のみ
+            last_process = Process.objects.filter(recipe=self.recipe).order_by('-process_number').first()
+            if last_process:
+                self.process_number = last_process.process_number + 1
+        super().save(*args, **kwargs)
     
         
 class Ingredient(models.Model):
