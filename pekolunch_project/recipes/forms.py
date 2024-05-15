@@ -15,7 +15,7 @@ class CSVUploadForm(forms.Form):
 
     def clean_csv_file(self):
         csv_file = self.cleaned_data['csv_file']
-        # CSVファイルのバリデーションを追加する場合はここに記述
+        
         return csv_file
     
     def load_food_categories(self):
@@ -23,49 +23,58 @@ class CSVUploadForm(forms.Form):
         return load_food_categories_from_csv(csv_file_path)
 
 class ProcessForm(forms.ModelForm):
+    description = forms.CharField(label='説明',max_length=255)
+
     class Meta:
         model = Process
         fields = ['process_number','description']
         labels = {
-            'process_number':'プロセス番号',
-            'description':'説明',
+            'process_number':'手順',
         }
         widgets = {
-            'process_number': forms.HiddenInput(),  # フォームの表示を非表示にする
+            'process_number': forms.HiddenInput(), 
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['description'].label = ''  # ステップの説明フィールドのラベルを空にする
+        self.fields['description'].label = '' 
 
     def save(self, commit=True):
         process = super().save(commit=False)
-        if not process.pk:  # 新しいプロセスの場合のみ
-            recipe = self.instance.recipe
-            last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
+        if not process.pk and self.instance.recipe_id:  # Ensure instance has recipe_id
+            last_process = Process.objects.filter(recipe=self.instance.recipe).order_by('-process_number').first()
             if last_process:
                 process.process_number = last_process.process_number + 1
+            else:
+                process.process_number = 1
         if commit:
             process.save()
         return process
 
     
 class IngredientForm(forms.ModelForm):
+    # 分量・単位のフィールドを追加
+    quantity_unit = forms.CharField(max_length=32, label='分量・単位')
+
     class Meta:
         model = Ingredient
         fields = ['ingredient_name','quantity_unit']
         labels = {
             'ingredient_name': '材料名',
-            'quantity_unit': '量',
+            'quantity_unit': '分量・単位',
         }
         
     def save(self,commit=True):
         ingredient = super().save(commit=False)
-        if commit:
-            ingredient.save()
-            
-            serving = self.cleaned_data.get('serving',1)
-            ingredient.adjust_quantity_for_serving(serving)
+        ingredient_name = self.cleaned_data['ingredient_name']
+        quantity_unit = self.cleaned_data['quantity_unit']
+        
+        if ingredient_name and quantity_unit:  # 材料名と分量が入力されていることを確認
+            ingredient.ingredient_name = ingredient_name
+            ingredient.quantity_unit = quantity_unit
+        
+            if commit:
+                ingredient.save()
             
         return ingredient        
 
@@ -76,11 +85,9 @@ class RecipeForm(forms.ModelForm):
     cooking_time_min = forms.ChoiceField(choices=COOKING_TIME_CHOICES, label='調理時間')
     cooking_method = forms.ChoiceField(choices=COOKING_METHOD_CHOICES, label='調理法')
     image_url = forms.ImageField(label='画像', required=False)
-    serving = forms.IntegerField(label='人分', min_value=1)
-    share = forms.BooleanField(label='全体にシェアする')
-    is_avoid_main_dish = forms.BooleanField(label='主菜不要')
-    ingredient_name = forms.CharField(label='材料', max_length=64)
-    process = forms.CharField(label='作り方',max_length=255 )
+    serving = forms.IntegerField(label='', min_value=1)
+    share = forms.BooleanField(label='全体にシェアする',required=False)
+    is_avoid_main_dish = forms.BooleanField(label='主菜不要',required=False)
 
     class Meta:
         model = Recipe
@@ -93,45 +100,42 @@ class RecipeForm(forms.ModelForm):
         self.fields['average_evaluation'].widget = forms.HiddenInput()
         self.fields['share'].initial = True
         self.fields['is_avoid_main_dish'].initial = False
+        self.initial['serving'] = 1
         
         if csv_file_path:
             food_categories = self.load_food_categories(csv_file_path)
             if food_categories:
+                food_categories_qs = FoodCategory.objects.filter(pk__in=food_categories)
                 self.fields['food_categories'] = forms.ModelMultipleChoiceField(
-                    queryset=food_categories,
+                    queryset=food_categories_qs,
                     label='主な使用食材（5つまで選択）:',
                     required=False,
                     initial=[],
                     widget=forms.CheckboxSelectMultiple,    
                 )
         else:
+            food_categories_qs = FoodCategory.objects.none()
             self.fields['food_categories'] = forms.ModelMultipleChoiceField(
-                queryset=FoodCategory.objects.none(),
+                queryset=food_categories_qs,
                 label='主な使用食材（5つまで選択）:',
                 required=False,
                 initial=[],
                 widget=forms.CheckboxSelectMultiple,
             )
             
-        self.fields['process_description'] = forms.CharField(label='説明',widget=forms.Textarea)
+        # self.fields['description'] = forms.CharField(label='説明',widget=forms.Textarea)
 
 
     def save(self, commit=True):
         recipe = super().save(commit=False)
-        ingredient_name = self.cleaned_data.get('ingredient_name')
-        process = self.cleaned_data.get('process')
-        
+ 
         if commit:
             serving = self.cleaned_data.get('serving', 1)
-            recipe.adjust_ingredient_quantity_for_serving(serving)
+
             food_categories = self.load_food_categories(self.csv_file_path)
             recipe.food_categories.set(food_categories)
             recipe.save()
-            
-            Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name)
-            Process.objects.create(recipe=recipe, description=process)
-            
-        recipe.adjust_ingredient_quantity_for_serving(serving)
+       
  
         return recipe
 
@@ -145,5 +149,5 @@ class RecipeForm(forms.ModelForm):
                     category_name = row[0].strip()
                     if category_name:
                         food_category, created = FoodCategory.objects.get_or_create(food_category_name=category_name)
-                        food_categories = FoodCategory.objects.all()
+                        food_categories.append(food_category.pk)
         return food_categories

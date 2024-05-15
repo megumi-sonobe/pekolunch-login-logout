@@ -3,8 +3,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import render,redirect
 from django.views.generic import CreateView,UpdateView
 from django.urls import reverse_lazy
-from .models import Recipe
-from .forms import RecipeForm,ProcessForm
+from .forms import RecipeForm,ProcessForm,IngredientForm
 from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,62 +12,64 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv
 import os
 from django.conf import settings
-from django.forms import formset_factory
 
 
 class RecipeCreateView(CreateView):
     model = Recipe
     form_class = RecipeForm 
     template_name = 'recipes/my_recipe.html'
-    success_url = reverse_lazy('my_recipe_create')
+    success_url = reverse_lazy('accounts:home')
     
-    @csrf_exempt
-    def post(self,request,*args,**kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+    
+    def form_valid(self,form):
+        try:
+            # Save the recipe instance first to get the ID
+            self.object = form.save(commit=False)  # commit=Falseで保存を遅延
+            self.object.save()  # ここでオブジェクトをデータベースに保存してIDを取得
 
-    
-    
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.save_related_instances(form)
-        return JsonResponse({'success': True})
+            # Save related instances after the recipe is saved
+            self.save_related_instances(form, self.object)
 
-    def form_invalid(self, form):
-        return JsonResponse({'success': False, 'errors': form.errors, 'form': self.render_to_string('recipes/my_recipe.html', {'form': form})})
-    
+            return super().form_valid(form)
+        except Exception as e:
+            print("Exception occurred during form submission:", e)
+            return self.form_invalid(form) 
         
+    def form_invalid(self, form):
+        # フォームのエラーをログに出力
+        print(form.errors)  
+        return super().form_invalid(form)
     
-    def save_related_instances(self, form):
-        recipe = self.object
-        serving = form.cleaned_data.get('serving', 1)
-        recipe.adjust_ingredient_quantity_for_serving(serving)
 
-        process_description = form.cleaned_data.get('process_description')
+    def save_related_instances(self, form, recipe):
+
+        # 材料の保存
         ingredient_name = form.cleaned_data.get('ingredient_name')
+        quantity_unit = form.cleaned_data.get('quantity_unit')  # 量の単位を取得
 
-        # 最後のプロセス番号を取得し、それに1を加えて新しいプロセス番号を設定する
-        last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
-        process_number = 1 if not last_process else last_process.process_number + 1
+        if ingredient_name:
+            Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name, quantity_unit=quantity_unit)
 
-        # プロセスとイングレディエントを保存
-        process = Process.objects.create(recipe=recipe, process_number=process_number, description=process_description)
-        Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name)
+        # ProcessFormを使用してプロセスの詳細を保存
+        process_form = ProcessForm(self.request.POST)
+        if process_form.is_valid():
+            process = process_form.save(commit=False)
+            process.recipe = recipe
+            last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
+            process.process_number = 1 if not last_process else last_process.process_number + 1
+            process.save()
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        ProcessFormSet = formset_factory(ProcessForm,extra=1)
-        context['process_forms'] = ProcessFormSet()
-        return context
-
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
         return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'process_form' not in context:
+            context['process_form'] = ProcessForm(None)
+        return context
     
 class RecipeUpdateView(UpdateView):
     model = Recipe
@@ -76,22 +77,49 @@ class RecipeUpdateView(UpdateView):
     template_name = 'recipes/recipe_update.html'
     success_url = reverse_lazy('my_recipe_create')
     
-    @csrf_exempt
-    def post(self,request,*args,**kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            self.object = form.save()
-            form.save_related_instances()
-            return JsonResponse({'success':True})
-        else:
-            return JsonResponse({'success':False,'errors':form.errors})
+    def form_valid(self,form):
+        try:
+            # Save the recipe instance first to get the ID
+            recipe = form.save(commit=False)
+            recipe.save()  # Save to obtain the primary key (ID)
+            
+            # Save related instances after the recipe is saved
+            self.save_related_instances(form, recipe)
+            
+            return super().form_valid(form)
+        except Exception as e:
+            print("Exception occurred during form submission:", e)
+            raise
+        
+    def form_invalid(self, form):
+        process_form = ProcessForm(self.request.POST)
+        print(form.errors)  # フォームのエラーをログに出力
+        return self.render
 
+    def save_related_instances(self, form, recipe):
+        # Process serving
+        # serving = form.cleaned_data.get('serving', 1)
+        
     
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
-        return kwargs
+        # 材料の保存
+        ingredient_name = form.cleaned_data.get('ingredient_name')
+        quantity_unit = form.cleaned_data.get('quantity_unit')  # 量の単位を取得
+
+        if ingredient_name:
+            Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name, quantity_unit=quantity_unit)
+
+        # ProcessFormを使用してプロセスの詳細を保存
+        process_form = ProcessForm(self.request.POST)
+        if process_form.is_valid():
+            process = process_form.save(commit=False)
+            process.recipe = recipe
+            last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
+            process.process_number = 1 if not last_process else last_process.process_number + 1
+            process.save()
+            
+    
+            
+
     
 class SaveRatingView(LoginRequiredMixin,View):
     @csrf_exempt

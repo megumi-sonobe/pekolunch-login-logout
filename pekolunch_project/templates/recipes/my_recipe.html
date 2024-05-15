@@ -49,34 +49,32 @@
             {{ form.is_avoid_main_dish.label_tag }}
             {{ form.is_avoid_main_dish }}
         </div>
-        <div>
-            {{ form.serving.label_tag }}
-            {{ form.serving }}
-        </div>
+        
 
         <div id="ingredients-container" style="position: relative;">
-        <p style="display: inline-block; margin-right: 10px;">材料：</p>
-        <p>
-            <input type="number" name="serving_size" id="serving_size" min="1" style="width: 50px">
-            <label for="serving_size">人分</label>
-        </p>
+            <p style="display: inline-block; margin-right: 10px;">材料：</p>
+            <div style="display: inline-block;"> 
+                {{ form.serving.label_tag }}
+                {{ form.serving }}
+                <label for="serving_size">人分</label>
+            </div>
+
         <div id="ingredients-form" style="position:sticky; top:0; z-index:1;">
-            
-            <table style="display: inline-block;" id="ingredients_table">
+            <form id="ingredient-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <table style="display: inline-block;" id="ingredients_table">
     
                 <tr>
                     <td>材料名</td>
                     <td>分量・単位</td>
                 </tr>
                 <tr>
-                    <td>{{ form.ingredient_name }}</td>
-                    <td>
-                        <input type="text" name="quantity_unit" id="quantity_unit">
-                    </td>
+                    <td>{{ ingredient_form.ingredient_name }}</td>
+                    <td>{{ ingredient_form.quantity_unit }}</td>
                 </tr>
             </table>
 
-            <button type="button" onclick="addIngredient()">材料を追加する</button>
+            <button type="button" onclick="addIngredient()">行を追加</button>
     
 
         </div>
@@ -85,20 +83,22 @@
         <div id="process-container" style="position: relative;">
             <p style="display: inline-block; margin-right: 10px;">作り方：</p>
             <div id="process-form" style="position: sticky; top: 0; z-index: 1;">
-                <table style="display: inline-block;" id="processes_table">
-                    <tr>
-                        <td>番号</td>
-                        <td>説明</td>
-                    </tr>
-                    {% for form in process_forms %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>  <!-- ここで番号を表示 -->
-                        <td>{{ form.description }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-                
-                <button type="button" onclick="addProcess()">プロセスを追加</button>
+                <form id="processes-form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <table style="display: inline-block;" id="processes_table">
+                        <tr>
+                            <td>手順</td>
+                            <td>詳細</td>
+                        </tr>
+                        {% for form in process_forms %}
+                        <tr>
+                            <td>{{ form.process_number }}</td>  <!-- ここで番号を表示 -->
+                            <td>{{ form.description }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </form>
+                <button type="button" onclick="addProcess()">行を追加</button>
             </div>
         </div>
 
@@ -106,7 +106,7 @@
         <input type="hidden" id="rating-value" name="rating-value" value="">
         <div id="rating-display" style="margin-bottom: 10px;">マイ評価：☆☆☆</div>
 
-        <button type="submit" class="btn btn-primary">登録</button>
+        <button type="submit">登録</button>
 
     </form>
 
@@ -120,7 +120,9 @@
             var cell2 = newRow.insertCell(1);
             cell1.innerHTML = '<input type="text" name="ingredient_name">';
             cell2.innerHTML = '<input type="text" name="quantity_unit">';
-        }
+            document.getElementById("ingredient-form").appendChild(createHiddenInput("ingredient_name", ""));
+            document.getElementById("ingredient-form").appendChild(createHiddenInput("quantity_unit", ""));
+}
         
 
 
@@ -135,7 +137,7 @@
                 updateRatingDisplay(currentRating);
             });
 
-            recipeForm.addEventListener('submit', function(event) {
+            ratingButton.addEventListener('submit', function(event) { 
                 event.preventDefault(); // デフォルトのフォーム送信をキャンセル
 
                 const newValue = currentRating === 0 ? 3 : 0 ;
@@ -144,6 +146,8 @@
 
             // フォームの送信処理をここに追加する（必要に応じて）
             // 例: recipeForm.submit();
+                const recipeForm = document.getElementById('recipe-form');
+                recipeForm.submit();
             });
 
 
@@ -182,12 +186,33 @@
         var descriptionCell = document.createElement('td');
         var descriptionInput = document.createElement('input');
         descriptionInput.type = 'text';
-        descriptionInput.name = 'description';  // descriptionフィールドの名前に変更が必要かもしれません
+        descriptionInput.name = 'description';  
         descriptionCell.appendChild(descriptionInput);
         newRow.appendChild(descriptionCell);
-        
+
+        // 新しいプロセス番号を隠しフィールドとして追加
+        var processNumberInput = document.createElement('input');
+        processNumberInput.type = 'hidden';
+        processNumberInput.name = 'process_number';
+        processNumberInput.value = rowCount + 1;
+        newRow.appendChild(processNumberInput);
+
         // テーブルに新しい行を追加
         document.getElementById('processes_table').appendChild(newRow);
+
+        // 新しい行に対応するフォームの隠しフィールドを追加
+        document.getElementById("process-form").appendChild(createHiddenInput("description", ""));
+        document.getElementById("process-form").appendChild(createHiddenInput("process_number", rowCount + 1));
+
+    }
+
+    // 隠しフィールドを作成するヘルパー関数
+    function createHiddenInput(name, value) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        return input;
     }
 
     </script>

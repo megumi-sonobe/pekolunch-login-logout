@@ -22,6 +22,7 @@ class Recipe(models.Model):
     cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=False)
     cooking_method = models.IntegerField(choices=COOKING_METHOD_CHOICES,null=False)
     image_url = models.ImageField(upload_to='recipes/images/',null=True,blank=True)
+    serving = models.IntegerField(default=1)
     share = models.IntegerField(default=1)
     is_avoid_main_dish = models.IntegerField(default=0)
     average_evaluation = models.FloatField(null=True,blank=True)
@@ -41,14 +42,6 @@ class Recipe(models.Model):
             self.average_evaluation = None
         self.save()
         
-    def adjust_ingredient_quantity_for_serving(self,serving,is_child=False):
-        ingredients = self.ingredient_set.all()
-        for ingredient in ingredients:
-            if is_child:
-                serving *= 0.5
-                
-            ingredient.quantity_unit = f"{serving * ingredient.quantity_unit}"
-            ingredient.save()
         
 
     
@@ -86,12 +79,7 @@ class Ingredient(models.Model):
     quantity_unit = models.CharField(max_length=32)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    def adjust_quantity_for_serving(self,serving):
-        quantity, unit = self.quantity_unit.split(' ',1)
-        if serving != 0:
-            self.quantity_unit = f"{float(quantity) / serving} {unit}"
-        self.save()
+
         
     
 class UserEvaluation(models.Model):
@@ -102,6 +90,8 @@ class UserEvaluation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args,**kwargs):
+        if self.recipe.pk is None:
+            self.recipe.save()
         super().save(*args,**kwargs)
         self.recipe.update_average_rating()
         
