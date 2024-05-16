@@ -175,6 +175,25 @@
             document.getElementById('recipe-form').addEventListener('submit', function(event) {
                 console.log('Final Rating Value:', ratingInput.value);
             });
+
+            // チェックボックスの選択制限を追加
+            const foodCategoriesContainer = document.getElementById('food-categories-container');
+            const checkboxes = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const selectedCount = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]:checked').length;
+
+                    const isDisabled = selectedCount >= 5;
+
+                    checkboxes.forEach(box => {
+                        if (!box.checked) {
+                            box.disabled = isDisabled;
+                            box.parentElement.style.color = isDisabled ? 'lightgray' : 'initial';
+                        }
+                    });
+                });
+            });
         });
     </script>
 {% endblock %}

@@ -101,43 +101,39 @@ class RecipeForm(forms.ModelForm):
         self.fields['share'].initial = True
         self.fields['is_avoid_main_dish'].initial = False
         self.initial['serving'] = 1
-        
+    
+        food_categories_qs = FoodCategory.objects.none()
         if csv_file_path:
+            self.csv_file_path = csv_file_path
             food_categories = self.load_food_categories(csv_file_path)
             if food_categories:
                 food_categories_qs = FoodCategory.objects.filter(pk__in=food_categories)
-                self.fields['food_categories'] = forms.ModelMultipleChoiceField(
-                    queryset=food_categories_qs,
-                    label='主な使用食材（5つまで選択）:',
-                    required=False,
-                    initial=[],
-                    widget=forms.CheckboxSelectMultiple,    
-                )
-        else:
-            food_categories_qs = FoodCategory.objects.none()
-            self.fields['food_categories'] = forms.ModelMultipleChoiceField(
-                queryset=food_categories_qs,
-                label='主な使用食材（5つまで選択）:',
-                required=False,
-                initial=[],
-                widget=forms.CheckboxSelectMultiple,
-            )
-            
-        # self.fields['description'] = forms.CharField(label='説明',widget=forms.Textarea)
-
+    
+        self.fields['food_categories'] = forms.ModelMultipleChoiceField(
+            queryset=food_categories_qs,
+            label='主な使用食材（5つまで選択）:',
+            required=False,
+            initial=[],
+            widget=forms.CheckboxSelectMultiple,
+        )
+        
+    def clean_food_categories(self):
+        food_categories = self.cleaned_data.get('food_categories')
+        if len(food_categories) > 5:
+            raise forms.ValidationError('5つまで選択できます。')
+        return food_categories
 
     def save(self, commit=True):
         recipe = super().save(commit=False)
- 
         if commit:
-            serving = self.cleaned_data.get('serving', 1)
-
-            food_categories = self.load_food_categories(self.csv_file_path)
-            recipe.food_categories.set(food_categories)
             recipe.save()
-       
- 
+            food_categories = self.cleaned_data.get('food_categories')
+            if food_categories:
+                recipe.food_categories.set(food_categories)
+                print(f"Selected Food Categories: {food_categories}")  # デバッグ用
+            recipe.save()
         return recipe
+
 
     def load_food_categories(self, csv_file_path):
         food_categories = []
