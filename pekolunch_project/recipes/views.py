@@ -44,20 +44,35 @@ class RecipeCreateView(CreateView):
     def save_related_instances(self, form, recipe):
 
         # 材料の保存
-        ingredient_name = form.cleaned_data.get('ingredient_name')
-        quantity_unit = form.cleaned_data.get('quantity_unit')  # 量の単位を取得
+        ingredient_names = self.request.POST.getlist('ingredient_name', [])
+        quantity_units = self.request.POST.getlist('quantity_unit', [])  # 量の単位を取得
 
-        if ingredient_name:
-            Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name, quantity_unit=quantity_unit)
+        # ingredient_name = form.cleaned_data.get('ingredient_name')
+        # quantity_unit = form.cleaned_data.get('quantity_unit')  # 量の単位を取得
+        
+        for name, unit in zip(ingredient_names, quantity_units):
+            if name:
+                Ingredient.objects.create(recipe=recipe, ingredient_name=name, quantity_unit=unit)
+
+
+        # if ingredient_name:
+        #     Ingredient.objects.create(recipe=recipe, ingredient_name=ingredient_name, quantity_unit=quantity_unit)
 
         # ProcessFormを使用してプロセスの詳細を保存
-        process_form = ProcessForm(self.request.POST)
-        if process_form.is_valid():
-            process = process_form.save(commit=False)
-            process.recipe = recipe
-            last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
-            process.process_number = 1 if not last_process else last_process.process_number + 1
-            process.save()
+        descriptions = self.request.POST.getlist('description', [])
+        for description in descriptions:
+            if description:
+                last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
+                process_number = 1 if not last_process else last_process.process_number + 1
+                Process.objects.create(recipe=recipe, description=description, process_number=process_number)
+
+        # process_form = ProcessForm(self.request.POST)
+        # if process_form.is_valid():
+        #     process = process_form.save(commit=False)
+        #     process.recipe = recipe
+        #     last_process = Process.objects.filter(recipe=recipe).order_by('-process_number').first()
+        #     process.process_number = 1 if not last_process else last_process.process_number + 1
+        #     process.save()
     
     
     def get_form_kwargs(self):
