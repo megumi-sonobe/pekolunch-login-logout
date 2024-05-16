@@ -3,7 +3,7 @@ from django import forms
 from django.core.files.base import File
 from django.db.models.base import Model
 from django.forms.utils import ErrorList
-from .models import Recipe,RecipeFoodCategory,Process,Ingredient,FoodCategory
+from .models import Recipe,RecipeFoodCategory,Process,Ingredient,FoodCategory,UserEvaluation
 from choices import COOKING_TIME_CHOICES,COOKING_METHOD_CHOICES,MENU_CHOICES
 from meal_planner.service import load_food_categories_from_csv
 from typing import Tuple
@@ -151,3 +151,9 @@ class RecipeForm(forms.ModelForm):
                         food_category, created = FoodCategory.objects.get_or_create(food_category_name=category_name)
                         food_categories.append(food_category.pk)
         return food_categories
+    
+class UserEvaluationForm(forms.ModelForm):
+    class Meta:
+        model =UserEvaluation
+        fields = ['evaluation'
+                  ] 

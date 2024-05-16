@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}
-    マイレシピ-peko Lunch
-{% endblock%}
+    マイレシピ - peko Lunch
+{% endblock %}
 
 {% block content %}
     <h2>マイレシピ</h2>
@@ -33,9 +33,8 @@
             <div id="food-categories-container">
                 <input type="text" id="search-bar" placeholder="食材を検索">
                 {{ form.food_categories }}
-                
+            </div>
         </div>
-
 
         <div>
             {{ form.image_url.label_tag }}
@@ -49,70 +48,65 @@
             {{ form.is_avoid_main_dish.label_tag }}
             {{ form.is_avoid_main_dish }}
         </div>
-        
 
         <div id="ingredients-container" style="position: relative;">
             <p style="display: inline-block; margin-right: 10px;">材料：</p>
-            <div style="display: inline-block;"> 
+            <div style="display: inline-block;">
                 {{ form.serving.label_tag }}
                 {{ form.serving }}
                 <label for="serving_size">人分</label>
             </div>
 
-        <div id="ingredients-form" style="position:sticky; top:0; z-index:1;">
-            <form id="ingredient-form" method="post" enctype="multipart/form-data">
+            <div id="ingredients-form" style="position: sticky; top: 0; z-index: 1;">
                 {% csrf_token %}
                 <table style="display: inline-block;" id="ingredients_table">
-    
-                <tr>
-                    <td>材料名</td>
-                    <td>分量・単位</td>
-                </tr>
-                <tr>
-                    <td>{{ ingredient_form.ingredient_name }}</td>
-                    <td>{{ ingredient_form.quantity_unit }}</td>
-                </tr>
-            </table>
+                    <tr>
+                        <td>材料名</td>
+                        <td>分量・単位</td>
+                    </tr>
+                    <tr>
+                        <td>{{ ingredient_form.ingredient_name }}</td>
+                        <td>{{ ingredient_form.quantity_unit }}</td>
+                    </tr>
+                </table>
 
-            <button type="button" onclick="addIngredient()">行を追加</button>
-    
-
+                <button type="button" onclick="addIngredient()">行を追加</button>
+            </div>
         </div>
-        
 
         <div id="process-container" style="position: relative;">
             <p style="display: inline-block; margin-right: 10px;">作り方：</p>
             <div id="process-form" style="position: sticky; top: 0; z-index: 1;">
-                <form id="processes-form" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <table style="display: inline-block;" id="processes_table">
-                        <tr>
-                            <td>手順</td>
-                            <td>詳細</td>
-                        </tr>
-                        {% for form in process_forms %}
-                        <tr>
-                            <td>{{ form.process_number }}</td>  <!-- ここで番号を表示 -->
-                            <td>{{ form.description }}</td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                </form>
+                <table style="display: inline-block;" id="processes_table">
+                    <tr>
+                        <td>手順</td>
+                        <td>詳細</td>
+                    </tr>
+                    {% for form in process_forms %}
+                    <tr>
+                        <td>{{ form.process_number }}</td>
+                        <td>{{ form.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
                 <button type="button" onclick="addProcess()">行を追加</button>
             </div>
         </div>
 
-
-        <input type="hidden" id="rating-value" name="rating-value" value="">
-        <div id="rating-display" style="margin-bottom: 10px;">マイ評価：☆☆☆</div>
+        <div id="rating-display" style="margin-bottom: 10px;">
+            <span>マイ評価：</span>
+            <span id="rating-stars" style="cursor: pointer;">
+                <span data-value="1">☆</span>
+                <span data-value="2">☆</span>
+                <span data-value="3">☆</span>
+            </span>
+            <input type="hidden" name="rating-value" id="rating-value" value="0">
+        </div>
 
         <button type="submit">登録</button>
-
     </form>
 
     <script>
-        
-
         function addIngredient() {
             var table = document.getElementById("ingredients_table");
             var newRow = table.insertRow(-1); // Insert row at the end
@@ -120,100 +114,67 @@
             var cell2 = newRow.insertCell(1);
             cell1.innerHTML = '<input type="text" name="ingredient_name">';
             cell2.innerHTML = '<input type="text" name="quantity_unit">';
-            document.getElementById("ingredient-form").appendChild(createHiddenInput("ingredient_name", ""));
-            document.getElementById("ingredient-form").appendChild(createHiddenInput("quantity_unit", ""));
-}
-        
+        }
 
+        function addProcess() {
+            // 新しい行を作成
+            var newRow = document.createElement('tr');
+            
+            // 現在表示されている行数を取得
+            var rowCount = document.querySelectorAll('#processes_table tr').length - 1; // ヘッダー行を除外
+            
+            // 新しいプロセス番号をセルに追加
+            var processNumberCell = document.createElement('td');
+            processNumberCell.textContent = rowCount + 1;
+            newRow.appendChild(processNumberCell);
+            
+            // 新しい説明入力欄をセルに追加
+            var descriptionCell = document.createElement('td');
+            var descriptionInput = document.createElement('input');
+            descriptionInput.type = 'text';
+            descriptionInput.name = 'description';  
+            descriptionCell.appendChild(descriptionInput);
+            newRow.appendChild(descriptionCell);
 
-        document.addEventListener("DOMContentLoaded",function() {
-            const ratingDisplay = document.getElementById('rating-display');
-            const ratingButton = document.getElementById('recipe-form');
-            let currentRating = 0;
+            // 新しいプロセス番号を隠しフィールドとして追加
+            var processNumberInput = document.createElement('input');
+            processNumberInput.type = 'hidden';
+            processNumberInput.name = 'process_number';
+            processNumberInput.value = rowCount + 1;
+            newRow.appendChild(processNumberInput);
 
-            ratingDisplay.addEventListener('click', function(){
-                const newValue = currentRating === 1 ? 2 : currentRating === 2 ? 3 : 1;
-               currentRating = newValue;
-                updateRatingDisplay(currentRating);
+            // テーブルに新しい行を追加
+            document.getElementById('processes_table').appendChild(newRow);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const ratingStars = document.querySelectorAll('#rating-stars span');
+            const ratingInput = document.getElementById('rating-value'); 
+            let currentRating = parseInt(ratingInput.value) || 0; 
+
+            ratingStars.forEach(star => {
+                star.addEventListener('click', function() {
+                    currentRating = parseInt(this.getAttribute('data-value'));
+                    updateRatingDisplay(currentRating);
+                });
             });
-
-            ratingButton.addEventListener('submit', function(event) { 
-                event.preventDefault(); // デフォルトのフォーム送信をキャンセル
-
-                const newValue = currentRating === 0 ? 3 : 0 ;
-                currentRating = newValue;
-                updateRatingDisplay(currentRating);
-
-            // フォームの送信処理をここに追加する（必要に応じて）
-            // 例: recipeForm.submit();
-                const recipeForm = document.getElementById('recipe-form');
-                recipeForm.submit();
-            });
-
-
-
 
             function updateRatingDisplay(rating) {
-                let ratingDisplayText = '';
-                for(let i = 1; i <= 3; i++) {
-                    if (i <= rating) {
-                        ratingDisplayText += '★';
-                    } else{
-                        ratingDisplayText += '☆';
-                    }
-                }
-                ratingDisplay.textContent = 'マイ評価：' + ratingDisplayText;
-                document.getElementById('rating-value').value = rating;
+                ratingStars.forEach(star => {
+                    const value = parseInt(star.getAttribute('data-value'));
+                    star.textContent = value <= rating ? '★' : '☆';
+                });
+                ratingInput.value = rating;
+                console.log('Updated Rating:', rating); // 確認用ログ
+                console.log('Rating Input Value:', ratingInput.value); // 確認用ログ
             }
 
             updateRatingDisplay(currentRating);
 
+            // フォーム送信時に評価値をログに出力
+            document.getElementById('recipe-form').addEventListener('submit', function(event) {
+                console.log('Final Rating Value:', ratingInput.value);
+            });
         });
-
-    function addProcess() {
-        // 新しい行を作成
-        var newRow = document.createElement('tr');
-        
-        // 現在表示されている行数を取得
-        var rowCount = document.querySelectorAll('#processes_table tr').length - 1; // ヘッダー行を除外
-        
-        // 新しいプロセス番号をセルに追加
-        var processNumberCell = document.createElement('td');
-        processNumberCell.textContent = rowCount + 1;
-        newRow.appendChild(processNumberCell);
-        
-        // 新しい説明入力欄をセルに追加
-        var descriptionCell = document.createElement('td');
-        var descriptionInput = document.createElement('input');
-        descriptionInput.type = 'text';
-        descriptionInput.name = 'description';  
-        descriptionCell.appendChild(descriptionInput);
-        newRow.appendChild(descriptionCell);
-
-        // 新しいプロセス番号を隠しフィールドとして追加
-        var processNumberInput = document.createElement('input');
-        processNumberInput.type = 'hidden';
-        processNumberInput.name = 'process_number';
-        processNumberInput.value = rowCount + 1;
-        newRow.appendChild(processNumberInput);
-
-        // テーブルに新しい行を追加
-        document.getElementById('processes_table').appendChild(newRow);
-
-        // 新しい行に対応するフォームの隠しフィールドを追加
-        document.getElementById("process-form").appendChild(createHiddenInput("description", ""));
-        document.getElementById("process-form").appendChild(createHiddenInput("process_number", rowCount + 1));
-
-    }
-
-    // 隠しフィールドを作成するヘルパー関数
-    function createHiddenInput(name, value) {
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value;
-        return input;
-    }
-
     </script>
 {% endblock %}

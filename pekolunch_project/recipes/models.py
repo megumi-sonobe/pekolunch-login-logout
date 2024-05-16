@@ -35,7 +35,7 @@ class Recipe(models.Model):
     
     def update_average_rating(self):
         #レシピ平均評価を更新
-        average_rating = self.user_evaluation_set.aggregate(Avg('evaluation'))['evaluation__avg']
+        average_rating = self.user_evaluations.aggregate(Avg('evaluation'))['evaluation__avg']
         if average_rating is not None:
             self.average_evaluation = round(average_rating,2)
         else:
@@ -85,13 +85,11 @@ class Ingredient(models.Model):
 class UserEvaluation(models.Model):
     user = models.ForeignKey(Users,on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe,on_delete=models.CASCADE,related_name='user_evaluations')
-    evaluation =models.IntegerField(choices=[(0,'1 star'),(1,'2 star'),(2,'3 star')])
+    evaluation = models.IntegerField(choices=[(1, '1 star'), (2, '2 stars'), (3, '3 stars')])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args,**kwargs):
-        if self.recipe.pk is None:
-            self.recipe.save()
         super().save(*args,**kwargs)
         self.recipe.update_average_rating()
         
