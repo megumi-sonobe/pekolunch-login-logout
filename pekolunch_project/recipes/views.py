@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Recipe, UserEvaluation, Process, Ingredient
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 import csv
 import os
 from django.conf import settings
@@ -15,7 +16,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
     form_class = RecipeForm 
     template_name = 'recipes/my_recipe.html'
-    success_url = reverse_lazy('accounts:home')
+    # success_url = reverse_lazy('accounts:home')
     
     def form_valid(self, form):
         try:
@@ -23,7 +24,8 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
             self.object.save()  # ここでオブジェクトをデータベースに保存してIDを取得
             self.save_related_instances()
             self.save_user_evaluation()
-            return super().form_valid(form)
+            messages.success(self.request, f"レシピに「{self.object.recipe_name}」が登録されました。")
+            return redirect('recipes:my_recipe_create')  # 遷移先を再びマイレシピ登録ページに設定
         except Exception as e:
             print(f"Exception occurred during form submission: {e}")
             return self.form_invalid(form)
