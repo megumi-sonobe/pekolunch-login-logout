@@ -17,7 +17,8 @@ class HomeView(LoginRequiredMixin,TemplateView):
     
     def get_context_data(self, **kwargs): 
         context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
+        context['username'] = self.request.user.username
+        # context['user'] = self.request.user
         context['my_page_url'] = reverse_lazy('accounts:my_page')
         
         # messages = get_messages(self.request)

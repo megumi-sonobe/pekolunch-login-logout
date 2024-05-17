@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import create_meal_plans, edit_meal_plan
+from . import views
 
 app_name = 'meal_planner'
 
 urlpatterns = [
-    path('create_meal_plans/', create_meal_plans, name='create_meal_plans'),
-    path('edit_meal_plan/<str:start_date>/<str:end_date>/', edit_meal_plan, name='edit_meal_plan'),
+    path('', views.home, name='home'),
+    path('create/', views.create_meal_plans, name='create_meal_plans'),
+    path('edit/<str:start_date>/<str:end_date>/', views.edit_meal_plan, name='edit_meal_plan'),
 ]

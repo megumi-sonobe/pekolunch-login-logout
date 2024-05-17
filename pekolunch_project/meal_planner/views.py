@@ -3,7 +3,18 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Recipe
 from django.http import HttpResponse
+from django.contrib import messages
 import datetime
+
+@login_required
+def home(request):
+    print("Home view accessed")  # ビューにアクセスしたことを確認するメッセージ
+    if request.user.is_authenticated:
+        print(f"Logged in as: {request.user.username}")  # ユーザー名を出力
+    else:
+        print("User is not authenticated")
+    return render(request, 'home.html', {'username': request.user.username})
+
 
 @login_required
 def create_meal_plans(request):
@@ -11,7 +22,8 @@ def create_meal_plans(request):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         if not start_date or not end_date:
-            return HttpResponse("日付が選択されていません", status=400)
+            messages.error(request,"日付が選択されていません。")
+            return redirect('accounts:home')
         
         # デバッグ用のログを追加
         print(f"Received start_date: {start_date}, end_date: {end_date}")
@@ -28,8 +40,8 @@ def edit_meal_plan(request, start_date, end_date):
     # デバッグ用のログを追加
     print(f"Start Date: {start_date}, End Date: {end_date}")
 
-    start_date_formatted = format_date_without_weekday(start_date)
-    end_date_formatted = format_date_without_weekday(end_date)
+    start_date_formatted = format_date_with_weekday(start_date)
+    end_date_formatted = format_date_with_weekday(end_date)
     
     selected_recipes = get_selected_recipes(start_date, end_date)
 
@@ -40,8 +52,9 @@ def edit_meal_plan(request, start_date, end_date):
     }
     return render(request, 'meal_planner/edit_meal_plan.html', context)
 
-def format_date_without_weekday(date):
-    return f"{date.month}/{date.day}"
+def format_date_with_weekday(date):
+    weekdays = ['月', '火', '水', '木', '金', '土', '日']
+    return f"{date.month}/{date.day}（{weekdays[date.weekday()]}）"
 
 def get_selected_recipes(start_date, end_date):
     # 各カテゴリのレシピを取得
