@@ -11,3 +11,12 @@
 #selectedDateDisplay {
     text-align: center;
 }
+
+
+#food-categories-container {
+    max-height: 400px; /* 最大高さを設定してスクロールを可能にする */
+    overflow-y: auto; /* 垂直スクロールを有効にする */
+    border: 1px solid #ccc; /* ボーダーを追加して見やすくする */
+    padding: 10px;
+    margin-bottom: 20px;
+}

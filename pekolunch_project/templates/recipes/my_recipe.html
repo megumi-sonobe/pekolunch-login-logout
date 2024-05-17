@@ -30,8 +30,8 @@
 
         <div>
             {{ form.food_categories.label_tag }}
+            <input type="text" id="search-bar" placeholder="食材を検索">
             <div id="food-categories-container">
-                <input type="text" id="search-bar" placeholder="食材を検索">
                 {{ form.food_categories }}
             </div>
         </div>
@@ -179,6 +179,7 @@
             // チェックボックスの選択制限を追加
             const foodCategoriesContainer = document.getElementById('food-categories-container');
             const checkboxes = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]');
+            const searchBar = document.getElementById('search-bar');
 
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
@@ -192,6 +193,26 @@
                             box.parentElement.style.color = isDisabled ? 'lightgray' : 'initial';
                         }
                     });
+                    // チェックされたときに検索バーをリセットする
+                    if (this.checked) {
+                        searchBar.value = '';
+                        checkboxes.forEach(box => {
+                            box.parentElement.style.display = 'block'; // 全てのチェックボックスを表示
+                        });
+                    }
+                });
+            });
+            
+            // 食材検索機能の追加
+            searchBar.addEventListener('input', function() {
+                const searchValue = searchBar.value.toLowerCase();
+                checkboxes.forEach(checkbox => {
+                    const label = checkbox.parentElement.textContent.toLowerCase();
+                    if (label.includes(searchValue)) {
+                        checkbox.parentElement.style.display = 'block';
+                    } else {
+                        checkbox.parentElement.style.display = 'none';
+                    }
                 });
             });
         });
