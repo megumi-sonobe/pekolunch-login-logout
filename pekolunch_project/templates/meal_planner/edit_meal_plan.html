@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    献立編集 - peko Lunch
+{% endblock %}
+
+{% block content %}
+    <h2>献立編集</h2>
+    <p>{{ start_date }} 〜 {{ end_date }}</p> <!-- フォーマットされた日付を表示 -->
+    <ul>
+        <li>主食: {{ selected_recipes.staple_recipe.recipe_name }}</li>
+        <li>主菜: {{ selected_recipes.main_recipe.recipe_name }}</li>
+        <li>副菜: {{ selected_recipes.side_recipe.recipe_name }}</li>
+        <li>汁物: {{ selected_recipes.soup_recipe.recipe_name }}</li>
+    </ul>
+{% endblock %}

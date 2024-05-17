@@ -39,7 +39,7 @@ RULES = load_food_categories_from_csv(csv_file_path)
     
 def apply_rules(recipes,today,user):
     # グローバル変数のRULESを使用する
-    exclude_food_categories = [category for category, rule in RULES.items() if rule['exclude_next_day'] or rule['exclude_next_3_days']]    
+    exclude_food_categories = [category for category, rule in RULES.items() if rule['exclude_next_day'] or rule['exclude_next_3_days']]
     return recipes.exclude(food_categories__food_category_name__in=exclude_food_categories)
 
 
@@ -84,5 +84,30 @@ def get_eligible_recipes(user,previous_meal_plans):
             
     base_queryset = base_queryset.exclude(cooking_method__in=today_used_methods)
     
+    # 各カテゴリから最高評価のレシピを選択
+    staple_recipe = base_queryset.filter(menu_category=1).order_by('-average_evaluation').first()
+    main_recipe = base_queryset.filter(menu_category=2).order_by('-average_evaluation').first()
+    side_recipe = base_queryset.filter(menu_category=3).order_by('-average_evaluation').first()
+
     return [staple_recipe, main_recipe, side_recipe]
+
+def generate_meal_plan(user, meal_date=None):
+    if meal_date is None:
+        meal_date = timezone.now().date()
+
+    previous_meal_plans = MealPlan.objects.filter(user=user).order_by('-meal_date')
+    eligible_recipes = get_eligible_recipes(user, previous_meal_plans)
+
+    if not all(eligible_recipes):
+        raise ValueError("適切なレシピが見つかりませんでした。")
+
+    meal_plan = MealPlan.objects.create(
+        user=user,
+        staple_recipe=eligible_recipes[0],
+        main_recipe=eligible_recipes[1],
+        side_recipe=eligible_recipes[2],
+        meal_date=meal_date,
+    )
+
+    return meal_plan
        
