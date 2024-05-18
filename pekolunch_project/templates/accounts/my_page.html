@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    マイページ-peko Lunch
-{% endblock%}
+    マイページ - peko Lunch
+{% endblock %}
 
 {% block content %}
 <h2>マイページ</h2>
@@ -12,7 +12,6 @@
 {% else %}
     <p>画像がありません。</p>
 {% endif %}
-
 
 <form method="post" enctype="multipart/form-data" action="{% url 'accounts:my_page' %}">
     {% csrf_token %}
@@ -28,10 +27,29 @@
     {{ form.cooking_time_min.label_tag }} {{ form.cooking_time_min }}
     <br><br>
 
+    <div>
+        <label>三ツ星レシピ：</label>
+        {% if three_star_recipes %}
+            <ul>
+                {% for recipe in three_star_recipes %}
+                    <li>
+                        {% if recipe.image_url %}
+                            <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="100" height="100">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="100" height="100">
+                        {% endif %}
+                        <p>{{ recipe.recipe_name }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>三つ星レシピが登録されていません。レシピを評価しましょう。</p>
+        {% endif %}
+    </div>
+
     <button type="submit">保存</button>
 </form>
 
 <a href="{% url 'accounts:user_update' %}">アカウント情報変更</a>
 
 {% endblock %}
-

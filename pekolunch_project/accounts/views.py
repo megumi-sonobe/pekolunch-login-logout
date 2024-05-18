@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib.messages import get_messages
+from recipes.models import Recipe
 
 class HomeView(LoginRequiredMixin,TemplateView):
     template_name = 'home.html'
@@ -115,7 +116,6 @@ class MyPageView(LoginRequiredMixin,UpdateView):
     
     def form_valid(self, form):
         user = form.save(commit=False)
-    
         image_url = form.cleaned_data.get('image_url',None)
         
         if image_url:
@@ -125,4 +125,11 @@ class MyPageView(LoginRequiredMixin,UpdateView):
         messages.success(self.request,'マイページを更新しました。')
         
         return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        three_star_recipes = Recipe.objects.filter(user_evaluations__user=user,user_evaluations__evaluation=3)
+        context['three_star_recipes'] = three_star_recipes
+        return context
     

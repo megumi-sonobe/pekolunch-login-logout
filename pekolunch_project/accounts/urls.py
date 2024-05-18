@@ -4,6 +4,8 @@ from.views import(
     UserUpdateView,MyPageView
 )
 from meal_planner.views import create_meal_plans
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'accounts'
 urlpatterns = [
@@ -15,3 +17,6 @@ urlpatterns = [
     path('my_page/',MyPageView.as_view(),name='my_page'),
     path('create_meal_plans/',create_meal_plans,name='create_meal_plans'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
