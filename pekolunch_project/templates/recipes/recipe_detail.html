@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ recipe.recipe_name }} - peko Lunch
+{% endblock %}
+
+{% block content %}
+    <h2>{{ recipe.recipe_name }}</h2>
+
+    {% if recipe.image_url %}
+        <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="400">
+    {% else %}
+        <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="400">
+    {% endif %}
+
+    <p>カテゴリー: {{ recipe.menu_category }}</p>
+    <p>調理時間: {{ recipe.cooking_time_min }}分</p>
+    <p>調理方法: {{ recipe.cooking_method }}</p>
+    <p>評価: {{ recipe.average_evaluation }} / 5</p>
+
+    <h3>材料</h3>
+    <ul>
+        {% for ingredient in recipe.ingredient_set.all %}
+            <li>{{ ingredient.ingredient_name }} - {{ ingredient.quantity_unit }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>手順</h3>
+    <ol>
+        {% for process in recipe.process_set.all %}
+            <li>{{ process.description }}</li>
+        {% endfor %}
+    </ol>
+
+    <a href="{% url 'recipes:recipe_list' %}">レシピ一覧に戻る</a>
+{% endblock %}

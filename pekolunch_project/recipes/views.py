@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
 from django.views.generic import CreateView, UpdateView
 from django.urls import reverse_lazy
@@ -11,6 +12,9 @@ from django.contrib import messages
 import csv
 import os
 from django.conf import settings
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
+
 
 class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
@@ -155,3 +159,20 @@ class LoadFoodCategoriesView(View):
             return JsonResponse({'error': 'CSVファイルが見つかりませんでした'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+class RecipeListView(ListView):
+    model = Recipe
+    template_name = 'recipe/recipe_list.html'
+    context_object_name = 'recipes'
+    paginate_by = 10 #1ページあたりのアイテム数
+    
+    def get_queryset(self):
+        return Recipe.objects.order_by('-average_evaluation')
+
+class RecipeDetailView(DetailView):
+    model = Recipe
+    template_name = 'recipes/recipe_detail.html'
+    context_object_name = 'recipe'
+    
+    

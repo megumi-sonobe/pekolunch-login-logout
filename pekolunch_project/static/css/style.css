@@ -24,3 +24,20 @@
 .alert-danger {
     color: red;
 }
+
+
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.recipe-item {
+    padding: 10px;
+    text-align: center;
+}
+
+.recipe-item img {
+    max-width: 100%;
+    height: auto;
+}
