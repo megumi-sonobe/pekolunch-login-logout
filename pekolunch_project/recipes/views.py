@@ -14,7 +14,7 @@ import os
 from django.conf import settings
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-
+from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 
 class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
@@ -161,7 +161,7 @@ class LoadFoodCategoriesView(View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-class RecipeListView(ListView):
+class RecipeListView(LoginRequiredMixin,ListView):
     model = Recipe
     template_name = 'recipe/recipe_list.html'
     context_object_name = 'recipes'
@@ -170,9 +170,49 @@ class RecipeListView(ListView):
     def get_queryset(self):
         return Recipe.objects.order_by('-average_evaluation')
 
-class RecipeDetailView(DetailView):
+class RecipeDetailView(LoginRequiredMixin,DetailView):
     model = Recipe
     template_name = 'recipes/recipe_detail.html'
     context_object_name = 'recipe'
+    
+def search(request):
+    query = request.GET.get('q')
+    filters = request.GET.getlist('filter')
+    user = request.user
+    
+    recipes = Recipe.objects.all()
+    
+    if query:
+        recipes = Recipe.objects.filter(recipe_name__icontains=query)
+        
+    if 'my_recipe' in filters:
+        recipes = recipes.filter(user=user)
+    if 'three_star' in filters:
+        recipes = recipes.filter(average_evaluation__gte=3)
+    if 'main_dish' in filters:
+        recipes = recipes.filter(menu_category=1)
+    if 'side_dish' in filters:
+        recipes = recipes.filter(menu_category=2)
+    if 'sub_dish' in filters:
+        recipes = recipes.filter(menu_category=3)
+    if 'soup' in filters:
+        recipes = recipes.filter(menu_category=4) 
+    
+    paginator = Paginator(recipes,10)
+    page = request.GET.get('page')
+    
+    try:
+        recipes = paginator.page(page)
+    except PageNotAnInteger:
+        recipes = paginator.page(1)
+    except EmptyPage:
+        recipes = paginator.page(paginator.num_pages)
+        
+        
+    context = {
+            'recipes':recipes,
+    }
+    return render(request,'recipes/recipe_list.html',context)
+        
     
     

@@ -16,6 +16,7 @@ class FoodCategory(models.Model):
         return self.food_category_name
 
 class Recipe(models.Model):
+    user = models.ForeignKey(Users,on_delete=models.CASCADE,related_name='recipes')
     food_categories = models.ManyToManyField(FoodCategory,through='RecipeFoodCategory')
     recipe_name = models.CharField(max_length=32)
     menu_category = models.IntegerField(choices=MENU_CHOICES)

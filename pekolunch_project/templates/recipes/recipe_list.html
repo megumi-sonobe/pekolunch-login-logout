@@ -5,40 +5,88 @@
 {% endblock %}
 
 {% block content %}
-<h2>レシピ一覧</h2>
+<div class="content-container">
+    <div class="main-content">
+        <h2>レシピ一覧</h2>
 
-<div class="recipe-grid">
-    {% for recipe in recipes %}
-        <div class="recipe-item">
-            <a href="{% url 'recipes:recipe_detail' recipe.pk %}">
-                {% if recipe.image_url %}
-                    <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
-                {% else %}
-                    <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+        {% if not recipes %}
+            <p>該当するレシピは見つかりませんでした。</p>
+            <p>もう一度検索してください。</p>
+            <a href="{% url 'recipes:recipe_list' %}">料理一覧に戻る</a>
+        {% else %}
+            <div class="recipe-grid">
+                {% for recipe in recipes %}
+                    <div class="recipe-item">
+                        <a href="{% url 'recipes:recipe_detail' recipe.pk %}">
+                            {% if recipe.image_url %}
+                                <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
+                            {% else %}
+                                <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                            {% endif %}
+                            <p>{{ recipe.recipe_name }}</p>
+                        </a>
+                        <p>平均評価：{{ recipe.average_evaluation|default:"評価なし" }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- ページネーションリンクの追加 -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if recipes.has_previous %}
+                    <a href="?page=1">&laquo; 最初</a>
+                    <a href="?page={{ recipes.previous_page_number }}">前へ</a>
                 {% endif %}
-                <p>{{ recipe.recipe_name }}</p>
-            </a>
-            <p>平均評価：{{ recipe.average_evaluation|default:"評価なし" }}</p>
+
+                <span class="current">
+                    Page {{ recipes.number }} of {{ recipes.paginator.num_pages }}.
+                </span>
+
+                {% if recipes.has_next %}
+                    <a href="?page={{ recipes.next_page_number }}">次へ</a>
+                    <a href="?page={{ recipes.paginator.num_pages }}">最後 &raquo;</a>
+                {% endif %}
+            </span>
         </div>
-    {% endfor %}
+        <!-- ここまでがページネーションリンクの追加部分 -->
+    </div>
+
+    <div class="sidebar">
+        <form method="GET" action="{% url 'recipes:search' %}">
+            <input type="text" name="q" placeholder="料理名で検索">
+            <button type="submit" class="search-button">検索</button>
+            <br>
+            <br>
+                
+            <h4>条件検索</h4>
+            <div>
+                <input type="checkbox" id="my_recipe" name="filter" value="my_recipe">
+                <label for="my_recipe">マイレシピ</label>
+            </div>
+            <div>
+                <input type="checkbox" id="three_star" name="filter" value="three_star">
+                <label for="three_star">三つ星レシピ</label>
+            </div>
+            <div>
+                <input type="checkbox" id="main_dish" name="filter" value="main_dish">
+                <label for="main_dish">主食</label>
+            </div>
+            <div>
+                <input type="checkbox" id="side_dish" name="filter" value="side_dish">
+                <label for="side_dish">主菜</label>
+            </div>
+            <div>
+                <input type="checkbox" id="sub_dish" name="filter" value="sub_dish">
+                <label for="sub_dish">副菜</label>
+            </div>
+            <div>
+                <input type="checkbox" id="soup" name="filter" value="soup">
+                <label for="soup">汁物</label>
+            </div>
+
+            <button type="submit" class="search-button">検索</button>
+        </form>
+    </div>
 </div>
-
-<div class="pagination">
-    <span class="step-links">
-        {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; 最初</a>
-            <a href="?page={{ page_obj.previous_page_number }}">前へ</a>
-        {% endif %}
-
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-        </span>
-
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">次へ</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">最後 &raquo;</a>
-        {% endif %}
-    </span>
-</div>
-
 {% endblock %}
