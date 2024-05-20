@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}
-    マイレシピ - peko Lunch
+    レシピを編集 - peko Lunch
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,7 @@
         </div>
     {% endif %}
 
-    <h2>マイレシピ</h2>
+    <h2>レシピを編集</h2>
     
     <form id="recipe-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -42,7 +42,13 @@
             {{ form.food_categories.label_tag }}
             <input type="text" id="search-bar" placeholder="食材を検索">
             <div id="food-categories-container">
-                {{ form.food_categories }}
+                {% for checkbox in form.food_categories %}
+                    <div>
+                        <label>
+                            {{ checkbox.tag }} {{ checkbox.choice_label }}
+                        </label>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -68,16 +74,18 @@
             </div>
 
             <div id="ingredients-form" style="position: sticky; top: 0; z-index: 1;">
-                {% csrf_token %}
                 <table style="display: inline-block;" id="ingredients_table">
                     <tr>
                         <td>材料名</td>
                         <td>分量・単位</td>
                     </tr>
-                    <tr>
-                        <td><input type="text" name="ingredient_name" required></td>
-                        <td><input type="text" name="quantity_unit" required></td>
-                    </tr>
+                    {% for ingredient in recipe.ingredient_set.all %}
+                        <tr>
+                            <td><input type="text" name="ingredient_name" value="{{ ingredient.ingredient_name }}"></td>
+                            <td><input type="text" name="quantity_unit" value="{{ ingredient.quantity_unit }}"></td>
+                            <td><button type="button" onclick="deleteRow(this)">削除</button></td>
+                        </tr>
+                    {% endfor %}
                 </table>
 
                 <button type="button" onclick="addIngredient()">行を追加</button>
@@ -92,12 +100,13 @@
                         <td>手順</td>
                         <td>詳細</td>
                     </tr>
-                    <tr>
-                        <td>1</td>
-                        <td><input type="text" name="description" required></td>
-                        <td><button type="button" onclick="deleteRow(this)">削除</button></td>
-
-                    </tr>
+                    {% for process in recipe.process_set.all %}
+                        <tr>
+                            <td>{{ process.process_number }}</td>
+                            <td><input type="text" name="description" value="{{ process.description }}"></td>
+                            <td><button type="button" onclick="deleteRow(this)">削除</button></td>
+                        </tr>
+                    {% endfor %}
                 </table>
                 <button type="button" onclick="addProcess()">行を追加</button>
             </div>
@@ -110,65 +119,50 @@
                 <span data-value="2">☆</span>
                 <span data-value="3">☆</span>
             </span>
-            <input type="hidden" name="rating-value" id="rating-value" value="0">
+            <span class="click-to-rate">(クリックして評価)</span>
+            <input type="hidden" name="rating-value" id="rating-value" value="{% if user_evaluation %}{{ user_evaluation.evaluation }}{% else %}0{% endif %}">
         </div>
 
-        <button type="submit">登録</button>
+        <button type="submit">レシピを更新</button>
+        <a href="{% url 'recipes:recipe_detail' recipe.pk %}" class="btn btn-secondary">レシピに戻る</a>
     </form>
 
     <script>
         function addIngredient() {
             var table = document.getElementById("ingredients_table");
-            var newRow = table.insertRow(-1); // Insert row at the end
+            var newRow = table.insertRow(-1);
             var cell1 = newRow.insertCell(0);
             var cell2 = newRow.insertCell(1);
             var cell3 = newRow.insertCell(2);
-            cell1.innerHTML = '<input type="text" name="ingredient_name" required>';
-            cell2.innerHTML = '<input type="text" name="quantity_unit" required>';
+            cell1.innerHTML = '<input type="text" name="ingredient_name">';
+            cell2.innerHTML = '<input type="text" name="quantity_unit">';
             cell3.innerHTML = '<button type="button" onclick="deleteRow(this)">削除</button>';
         }
 
         function addProcess() {
-            // 新しい行を作成
             var newRow = document.createElement('tr');
-        
-            // 現在表示されている行数を取得
-            var rowCount = document.querySelectorAll('#processes_table tr').length - 1; // ヘッダー行を除外
-        
-            // 新しいプロセス番号をセルに追加
+            var rowCount = document.querySelectorAll('#processes_table tr').length - 1;
             var processNumberCell = document.createElement('td');
             processNumberCell.textContent = rowCount + 1;
             newRow.appendChild(processNumberCell);
-        
-            // 新しい説明入力欄をセルに追加
+
             var descriptionCell = document.createElement('td');
             var descriptionInput = document.createElement('input');
             descriptionInput.type = 'text';
-            descriptionInput.name = 'description';  
-            descriptionInput.required = true;
+            descriptionInput.name = 'description';
             descriptionCell.appendChild(descriptionInput);
             newRow.appendChild(descriptionCell);
 
-            // 新しいプロセス番号を隠しフィールドとして追加
-            var processNumberInput = document.createElement('input');
-            processNumberInput.type = 'hidden';
-            processNumberInput.name = 'process_number';
-            processNumberInput.value = rowCount + 1;
-            newRow.appendChild(processNumberInput);
-
-            // 削除ボタンを追加
             var actionCell = document.createElement('td');
             var deleteButton = document.createElement('button');
             deleteButton.type = 'button';
             deleteButton.textContent = '削除';
-            deleteButton.onclick = function(event) {
+            deleteButton.onclick = function() {
                 deleteRow(this);
-                event.preventDefault();
             };
             actionCell.appendChild(deleteButton);
             newRow.appendChild(actionCell);
-        
-            // テーブルに新しい行を追加
+
             document.getElementById('processes_table').appendChild(newRow);
         }
 
@@ -179,8 +173,8 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             const ratingStars = document.querySelectorAll('#rating-stars span');
-            const ratingInput = document.getElementById('rating-value'); 
-            let currentRating = parseInt(ratingInput.value) || 0; 
+            const ratingInput = document.getElementById('rating-value');
+            let currentRating = parseInt(ratingInput.value) || 0;
 
             ratingStars.forEach(star => {
                 star.addEventListener('click', function() {
@@ -195,18 +189,14 @@
                     star.textContent = value <= rating ? '★' : '☆';
                 });
                 ratingInput.value = rating;
-                console.log('Updated Rating:', rating); // 確認用ログ
-                console.log('Rating Input Value:', ratingInput.value); // 確認用ログ
             }
 
             updateRatingDisplay(currentRating);
 
-            // フォーム送信時に評価値をログに出力
             document.getElementById('recipe-form').addEventListener('submit', function(event) {
                 console.log('Final Rating Value:', ratingInput.value);
             });
 
-            // チェックボックスの選択制限を追加
             const foodCategoriesContainer = document.getElementById('food-categories-container');
             const checkboxes = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]');
             const searchBar = document.getElementById('search-bar');
@@ -214,7 +204,6 @@
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const selectedCount = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]:checked').length;
-
                     const isDisabled = selectedCount >= 5;
 
                     checkboxes.forEach(box => {
@@ -223,17 +212,16 @@
                             box.parentElement.style.color = isDisabled ? 'lightgray' : 'initial';
                         }
                     });
-                    // チェックされたときに検索バーをリセットする
+
                     if (this.checked) {
                         searchBar.value = '';
                         checkboxes.forEach(box => {
-                            box.parentElement.style.display = 'block'; // 全てのチェックボックスを表示
+                            box.parentElement.style.display = 'block';
                         });
                     }
                 });
             });
-            
-            // 食材検索機能の追加
+
             searchBar.addEventListener('input', function() {
                 const searchValue = searchBar.value.toLowerCase();
                 checkboxes.forEach(checkbox => {

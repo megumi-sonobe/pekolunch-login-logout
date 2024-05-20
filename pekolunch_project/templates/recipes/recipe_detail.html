@@ -5,32 +5,156 @@
 {% endblock %}
 
 {% block content %}
-    <h2>{{ recipe.recipe_name }}</h2>
-
     {% if recipe.image_url %}
         <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="400">
     {% else %}
         <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="400">
     {% endif %}
 
-    <p>カテゴリー: {{ recipe.menu_category }}</p>
-    <p>調理時間: {{ recipe.cooking_time_min }}分</p>
-    <p>調理方法: {{ recipe.cooking_method }}</p>
-    <p>評価: {{ recipe.average_evaluation }} / 5</p>
+    <h3>レシピ名：{{ recipe.recipe_name }}</h3>
+    <p>調理時間: {{ recipe.cooking_time_min }}分以内</p>
+    <p>みんなの評価: {{ recipe.average_evaluation }}</p>
 
-    <h3>材料</h3>
-    <ul>
-        {% for ingredient in recipe.ingredient_set.all %}
-            <li>{{ ingredient.ingredient_name }} - {{ ingredient.quantity_unit }}</li>
-        {% endfor %}
-    </ul>
+    <div id="rating-display" style="margin-bottom: 10px;">
+        <span>マイ評価：</span>
+        <span id="rating-stars" style="cursor: pointer;">
+            <span data-value="1">☆</span>
+            <span data-value="2">☆</span>
+            <span data-value="3">☆</span>
+        </span>
+        <span class="click-to-rate">(クリックして評価)</span>
+        <input type="hidden" name="rating-value" id="rating-value" value="{% if user_evaluation %}{{ user_evaluation.evaluation }}{% else %}0{% endif %}">
+    </div>
 
-    <h3>手順</h3>
+    <h4>材料</h4>
+    <p>（大人：{{ adult_count }}人、子ども：{{ children_count }}人分）</p>
+    <table class="ingredients-table">
+        <thead>
+            <tr>
+                <th>食材名</th>
+                <th>分量</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ingredient in recipe.ingredient_set.all %}
+                <tr>
+                    <td>{{ ingredient.ingredient_name }}</td>
+                    <td>{{ ingredient.quantity_unit }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>作り方</h4>
     <ol>
         {% for process in recipe.process_set.all %}
             <li>{{ process.description }}</li>
         {% endfor %}
     </ol>
 
-    <a href="{% url 'recipes:recipe_list' %}">レシピ一覧に戻る</a>
+    {% if is_owner %}
+        <a href="{% url 'recipes:my_recipe_update' recipe.pk %}">マイレシピを編集する</a>
+    {% endif %}
+    <br>
+    <br>
+    <div>
+        <a href="{% url 'recipes:recipe_list' %}" class="btn btn-secondary">レシピ一覧に戻る</a>
+    </form>
+    </div>
+    
+    <!-- モーダル -->
+    <div id="rating-modal" style="display: none;">
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5);">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px;">
+                <form method="post" id="modal-rating-form">
+                    {% csrf_token %}
+                    <div id="modal-rating-display">
+                        <span>評価を入力してください:</span>
+                        <span id="modal-rating-stars" style="cursor: pointer;">
+                            <span data-value="1">☆</span>
+                            <span data-value="2">☆</span>
+                            <span data-value="3">☆</span>
+                        </span>
+                        <input type="hidden" name="rating-value" id="modal-rating-value" value="0">
+                    </div>
+                    <button type="button" id="modal-save">保存</button>
+                    <button type="button" id="modal-close">閉じる</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ratingStars = document.querySelectorAll('#rating-stars span');
+            const modalRatingStars = document.querySelectorAll('#modal-rating-stars span');
+            const ratingInput = document.getElementById('modal-rating-value');
+            const mainRatingInput = document.getElementById('rating-value');
+            let currentRating = parseInt(mainRatingInput.value) || 0;
+
+            ratingStars.forEach(star => {
+                star.addEventListener('click', function() {
+                    document.getElementById('rating-modal').style.display = 'block';
+                });
+            });
+
+            modalRatingStars.forEach(star => {
+                star.addEventListener('click', function() {
+                    currentRating = parseInt(this.getAttribute('data-value'));
+                    updateRatingDisplay(currentRating);
+                });
+            });
+
+            function updateRatingDisplay(rating) {
+                modalRatingStars.forEach(star => {
+                    const value = parseInt(star.getAttribute('data-value'));
+                    star.textContent = value <= rating ? '★' : '☆';
+                });
+                ratingInput.value = rating;
+                console.log('Updated Rating:', rating); // 確認用ログ
+                console.log('Rating Input Value:', ratingInput.value); // 確認用ログ
+            }
+
+            updateRatingDisplay(currentRating);
+
+            document.getElementById('modal-close').addEventListener('click', function() {
+                document.getElementById('rating-modal').style.display = 'none';
+            });
+
+            document.getElementById('modal-save').addEventListener('click', function() {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                fetch("{% url 'recipes:save_rating' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        rating: ratingInput.value,
+                        'recipe-id': {{ recipe.pk }}
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('rating-modal').style.display = 'none';
+                        mainRatingInput.value = ratingInput.value;
+                        updateMainRatingDisplay(ratingInput.value);
+                    } else {
+                        alert('評価の保存に失敗しました。');
+                    }
+                });
+            });
+
+            function updateMainRatingDisplay(rating) {
+                ratingStars.forEach(star => {
+                    const value = parseInt(star.getAttribute('data-value'));
+                    star.textContent = value <= rating ? '★' : '☆';
+                });
+                mainRatingInput.value = rating;
+            }
+
+            updateMainRatingDisplay(currentRating);
+        });
+    </script>
 {% endblock %}
