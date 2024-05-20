@@ -169,12 +169,15 @@ class RecipeListView(LoginRequiredMixin,ListView):
     
     def get_queryset(self):
         return Recipe.objects.order_by('-average_evaluation')
-
-class RecipeDetailView(LoginRequiredMixin,DetailView):
-    model = Recipe
-    template_name = 'recipes/recipe_detail.html'
-    context_object_name = 'recipe'
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        page_obj = context.get('page_obj')
+        if page_obj:
+            print(f"Current page: {page_obj.number}")
+            print(f"Total pages: {page_obj.paginator.num_pages}")
+        return context
+
 def search(request):
     query = request.GET.get('q')
     filters = request.GET.getlist('filter')
@@ -198,6 +201,8 @@ def search(request):
     if 'soup' in filters:
         recipes = recipes.filter(menu_category=4) 
     
+    recipes = recipes.order_by('-average_evaluation')
+    
     paginator = Paginator(recipes,10)
     page = request.GET.get('page')
     
@@ -211,8 +216,15 @@ def search(request):
         
     context = {
             'recipes':recipes,
+            'page_obj':recipes,
     }
     return render(request,'recipes/recipe_list.html',context)
         
     
+    
+
+class RecipeDetailView(LoginRequiredMixin,DetailView):
+    model = Recipe
+    template_name = 'recipes/recipe_detail.html'
+    context_object_name = 'recipe'
     
