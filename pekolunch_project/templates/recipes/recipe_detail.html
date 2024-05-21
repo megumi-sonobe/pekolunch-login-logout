@@ -13,7 +13,7 @@
 
     <h3>レシピ名：{{ recipe.recipe_name }}</h3>
     <p>調理時間: {{ recipe.cooking_time_min }}分以内</p>
-    <p>みんなの評価: {{ recipe.average_evaluation }}</p>
+    <p>みんなの評価: {% if recipe.average_evaluation %}{{ recipe.average_evaluation }}{% else %}評価なし{% endif %}</p>
 
     <div id="rating-display" style="margin-bottom: 10px;">
         <span>マイ評価：</span>

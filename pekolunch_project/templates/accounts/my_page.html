@@ -28,12 +28,13 @@
     <h3>{{ user.username }}</h3> <!-- ユーザー名 -->
 
     <div>
-        {{ form.adult_count.label_tag }} {{ form.adult_count }}
+        <p>家族構成：</p>
+        {{ form.adult_count.label_tag }} {{ form.adult_count }}人
     </div>
     <br>
 
     <div>
-        {{ form.children_count.label_tag }} {{ form.children_count }}
+        {{ form.children_count.label_tag }} {{ form.children_count }}人
     </div>
     <br>
 

@@ -1,0 +1,3 @@
+user_id,recipe_name,menu_category,cooking_time_min,cooking_method,image_url,serving,share,is_avoid_main_dish,ingredient_name,quantity_unit,process_number,process_description,food_category_id
+10,ご飯,1,10,7,,1,1,0,ご飯,茶碗1杯,1,米を洗って炊飯釜に入れ、規定量の水を入れて30分以上浸漬させ、通常炊飯する。,2570
+,,,,,,,,,,,2,ご飯が炊き上がったら全体をさっくり混ぜて器に盛る。,
