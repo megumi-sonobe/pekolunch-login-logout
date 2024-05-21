@@ -36,10 +36,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for ingredient in recipe.ingredient_set.all %}
+            {% for ingredient in adjusted_ingredients %}
                 <tr>
-                    <td>{{ ingredient.ingredient_name }}</td>
-                    <td>{{ ingredient.quantity_unit }}</td>
+                    <td>{{ ingredient.name }}</td>
+                    <td>{{ ingredient.quantity }}</td>
                 </tr>
             {% endfor %}
         </tbody>

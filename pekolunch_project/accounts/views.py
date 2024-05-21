@@ -106,7 +106,7 @@ class UserUpdateView(LoginRequiredMixin,UpdateView):
     
     
     
-class MyPageView(LoginRequiredMixin,UpdateView):
+class MyPageView(LoginRequiredMixin, UpdateView):
     template_name = 'accounts/my_page.html'
     form_class = MyPageForm
     success_url = reverse_lazy('accounts:home')
@@ -116,20 +116,31 @@ class MyPageView(LoginRequiredMixin,UpdateView):
     
     def form_valid(self, form):
         user = form.save(commit=False)
-        image_url = form.cleaned_data.get('image_url',None)
+        image_url = self.request.FILES.get('image_url')  # ファイルを取得する
         
-        if image_url:
+        # デバッグメッセージを追加
+        print("image_url-clear in POST:", 'image_url-clear' in self.request.POST)
+
+        
+        if 'image_url-clear' in self.request.POST:
+            user.image_url = None  # 画像をクリアする
+        elif image_url:
             user.image_url = image_url
             
         user.save()
-        messages.success(self.request,'マイページを更新しました。')
+        
+        self.request.session['adult_count'] = form.cleaned_data['adult_count']
+        self.request.session['children_count'] = form.cleaned_data['children_count']
+
+        messages.success(self.request, 'マイページを更新しました。')
         
         return super().form_valid(form)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        three_star_recipes = Recipe.objects.filter(user_evaluations__user=user,user_evaluations__evaluation=3)
+        three_star_recipes = Recipe.objects.filter(user_evaluations__user=user, user_evaluations__evaluation=3)
         context['three_star_recipes'] = three_star_recipes
         return context
+
     

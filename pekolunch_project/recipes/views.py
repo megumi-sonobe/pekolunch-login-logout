@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 import csv
 import os
 import json
+import re
 from django.conf import settings
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -278,10 +279,29 @@ class RecipeDetailView(LoginRequiredMixin, DetailView):
         recipe = self.get_object()
         user = self.request.user
         user_evaluation = UserEvaluation.objects.filter(user=self.request.user, recipe=recipe).first()
-        context['user_evaluation'] = user_evaluation
-        context['adult_count'] = user.adult_count
-        context['children_count'] = user.children_count
-        context['is_owner'] = recipe.user == user
+        
+        # セッションから人数を取得、なければユーザーのデフォルト値を使用
+        adult_count = self.request.session.get('adult_count', user.adult_count)
+        children_count = self.request.session.get('children_count', user.children_count)
+        
+        total_serving = adult_count + (children_count * 0.5)
+        serving_ratio = total_serving / recipe.serving
+        
+        adjusted_ingredients = []
+        for ingredient in recipe.ingredient_set.all():
+            adjusted_quantity = adjust_quantity(ingredient.quantity_unit, serving_ratio)
+            adjusted_ingredients.append({
+                'name': ingredient.ingredient_name,
+                'quantity': adjusted_quantity
+            })
+        
+        context.update({
+            'user_evaluation': user_evaluation,
+            'adjusted_ingredients': adjusted_ingredients,
+            'adult_count': adult_count,
+            'children_count': children_count,
+            'is_owner': recipe.user == user
+        })
         return context
     
     def post(self, request, *args, **kwargs):
@@ -299,4 +319,17 @@ class RecipeDetailView(LoginRequiredMixin, DetailView):
         recipe.update_average_rating()
 
         return redirect('recipes:recipe_detail', pk=recipe.pk)
-            
+
+def adjust_quantity(quantity, ratio):
+    pattern = r'([0-9]+\.?[0-9]*)'
+    match = re.search(pattern, quantity)
+    
+    if match:
+        original_quantity = float(match.group(1))
+        adjusted_quantity = original_quantity * ratio
+        # 数値部分を置換して元の形式に戻す
+        adjusted_quantity_str = re.sub(pattern, f'{adjusted_quantity:.1f}', quantity)
+        return adjusted_quantity_str
+    else:
+        # 数量が数値でない場合はそのまま返す（例: "適量"など）
+        return quantity

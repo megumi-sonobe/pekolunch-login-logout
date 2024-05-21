@@ -7,25 +7,40 @@
 {% block content %}
 <h2>マイページ</h2>
 
-{% if user.image_url %}
-    <img src="{{ user.image_url.url }}" alt="プロフィール画像" width="200" height="200">
-{% else %}
-    <p>画像がありません。</p>
-{% endif %}
-
 <form method="post" enctype="multipart/form-data" action="{% url 'accounts:my_page' %}">
     {% csrf_token %}
-    {{ form.image_url.label_tag }} {{ form.image_url }}
-    <br><br>
-    
-    {{ form.adult_count.label_tag }} {{ form.adult_count }}
-    <br><br>
-    
-    {{ form.children_count.label_tag }} {{ form.children_count }}
-    <br><br>
-    
-    {{ form.cooking_time_min.label_tag }} {{ form.cooking_time_min }}
-    <br><br>
+    <div style="position: relative; display: inline-block;">
+        {% if user.image_url %}
+            <img id="profile-image" src="{{ user.image_url.url }}" alt="プロフィール画像" class="profile-image">
+        {% else %}
+            <img id="profile-image" src="{{ MEDIA_URL }}default_profile_image.png" alt="デフォルト画像" class="profile-image">
+        {% endif %}
+        <div class="image-upload-label">
+            <label for="image_upload" class="plus-icon-label">
+                <span class="upload-text">＋画像を登録</span>
+            </label>
+            <input type="file" id="image_upload" name="image_url" style="display: none;" onchange="previewImage(event)">
+        </div>
+        <button type="button" id="clear-image" class="clear-image-btn">×</button> <!-- クリアボタン -->
+        <input type="checkbox" id="image_url-clear" name="image_url-clear" style="display: none;"> <!-- クリアチェックボックス -->
+    </div>
+
+    <h3>{{ user.username }}</h3> <!-- ユーザー名 -->
+
+    <div>
+        {{ form.adult_count.label_tag }} {{ form.adult_count }}
+    </div>
+    <br>
+
+    <div>
+        {{ form.children_count.label_tag }} {{ form.children_count }}
+    </div>
+    <br>
+
+    <div>
+        {{ form.cooking_time_min.label_tag }} {{ form.cooking_time_min }}
+    </div>
+    <br>
 
     <div>
         <label>三ツ星レシピ：</label>
@@ -38,7 +53,7 @@
                         {% else %}
                             <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="100" height="100">
                         {% endif %}
-                        <p>{{ recipe.recipe_name }}</p>
+                        <p><a href="{% url 'recipes:recipe_detail' recipe.pk %}">{{ recipe.recipe_name }}</a></p>
                     </li>
                 {% endfor %}
             </ul>
@@ -51,5 +66,23 @@
 </form>
 
 <a href="{% url 'accounts:user_update' %}">アカウント情報変更</a>
+
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function() {
+            var output = document.getElementById('profile-image');
+            output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    document.getElementById('clear-image').addEventListener('click', function() {
+        var profileImage = document.getElementById('profile-image');
+        profileImage.src = "{{ MEDIA_URL }}default_profile_image.png";
+        document.getElementById('image_upload').value = '';
+        document.getElementById('image_url-clear').checked = true;  // クリアチェックボックスをチェックする
+    });
+</script>
 
 {% endblock %}

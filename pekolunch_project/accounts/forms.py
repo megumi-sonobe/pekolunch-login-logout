@@ -139,9 +139,9 @@ class UserUpdateForm(forms.ModelForm):
 
 class MyPageForm(forms.ModelForm):
     image_url = forms.ImageField(label='画像',required=False)
-    adult_count = forms.IntegerField(label='大人：')
-    children_count = forms.IntegerField(label='子ども：')
-    cooking_time_min = forms.ChoiceField(label='一品あたりの調理時間：',choices=COOKING_TIME_CHOICES) 
+    adult_count = forms.IntegerField(label='大人')
+    children_count = forms.IntegerField(label='子ども')
+    cooking_time_min = forms.ChoiceField(label='一品あたりの調理時間',choices=COOKING_TIME_CHOICES) 
     
     class Meta:
         model = Users
