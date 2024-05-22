@@ -40,6 +40,17 @@
 </nav>
 
 <main>
+    <!-- メッセージ表示部分 -->
+    {% if messages %}
+        <div class="container mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <!-- ページの特定の部分を表示 -->
     {% block content %}
     {% endblock %}

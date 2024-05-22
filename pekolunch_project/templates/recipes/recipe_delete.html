@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    recipe_delete - peko Lunch
+{% endblock %}
+
+{% block content %}
+    <h2>レシピを削除</h2>
+    <p>本当に「{{ recipe.recipe_name }}」のレシピを削除しますか？</p>
+    <p class="text-danger"><strong>一度削除するとデータは元に戻せません。</strong></p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">削除</button>
+        <a href="{% url 'recipes:recipe_detail' recipe.pk %}" class="btn btn-secondary">キャンセル</a>
+    </form>
+{% endblock %}

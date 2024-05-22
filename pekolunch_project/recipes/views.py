@@ -1,6 +1,6 @@
 from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView,DeleteView
 from django.urls import reverse_lazy
 from .forms import RecipeForm, ProcessForm, IngredientForm
 from django.views import View
@@ -19,10 +19,11 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 from accounts.models import Users
-from django.http import Http404
+from django.http import Http404,HttpResponseRedirect
 from django.db import models
+from django.contrib.messages.views import SuccessMessageMixin
 
-User = get_user_model
+User = get_user_model()
 
 class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
@@ -151,7 +152,7 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
 
     def save_user_evaluation(self):
         rating_value = self.request.POST.get('rating-value')
-        print(f'Rating value: {rating_value}')  # デバッグ用
+        # print(f'Rating value: {rating_value}')  # デバッグ用
         if rating_value is not None and rating_value.isdigit():
             evaluation = int(rating_value)
             UserEvaluation.objects.update_or_create(
@@ -160,7 +161,28 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
                 defaults={'evaluation': evaluation}
             )
             self.object.update_average_rating()  # 平均評価を更新
+            
+class RecipeDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = Recipe
+    template_name = 'recipes/recipe_delete.html'
+    success_url = reverse_lazy('recipes:recipe_list')
+    success_message = "レシピが正常に削除されました。"
 
+    def get_queryset(self):
+        # ユーザーが自分のレシピのみ削除できるようにする
+        return super().get_queryset().filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['recipe'] = self.object
+        return context
+    
 class SaveRatingView(LoginRequiredMixin, View):
     @csrf_exempt
     def post(self, request, *args, **kwargs):
@@ -180,16 +202,16 @@ class SaveRatingView(LoginRequiredMixin, View):
                         recipe=recipe,
                         defaults={'evaluation': evaluation}
                     )
-                    print("Rating saved successfully")  # デバッグ用
+                    # print("Rating saved successfull")  # デバッグ用
                     return JsonResponse({'success': True})
                 except Recipe.DoesNotExist:
-                    print("Recipe not found")  # デバッグ用
+                    # print("Recipe not found")  # デバッグ用
                     return JsonResponse({'success': False, 'error': 'Recipe not found'})
             else:
-                print("Invalid request parameters")  # デバッグ用
+                # print("Invalid request parameters")  # デバッグ用
                 return JsonResponse({'success': False, 'error': 'Invalid request'})
         except Exception as e:
-            print(f"Exception: {e}")  # デバッグ用
+            # print(f"Exception: {e}")  # デバッグ用
             return JsonResponse({'success': False, 'error': str(e)})
 
 class LoadFoodCategoriesView(View):
@@ -229,7 +251,7 @@ class RecipeListView(LoginRequiredMixin,ListView):
         if page_obj:
             print(f"Current page: {page_obj.number}")
             print(f"Total pages: {page_obj.paginator.num_pages}")
-        return context
+            return context
 
 def search(request):
     query = request.GET.get('q')
