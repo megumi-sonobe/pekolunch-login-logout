@@ -1,6 +1,7 @@
 import random
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.db import models
 from .models import Recipe
 from django.http import HttpResponse
 from django.contrib import messages
@@ -15,14 +16,13 @@ def home(request):
         print("User is not authenticated")
     return render(request, 'home.html', {'username': request.user.username})
 
-
 @login_required
 def create_meal_plans(request):
     if request.method == 'POST':
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         if not start_date or not end_date:
-            messages.error(request,"日付が選択されていません。")
+            messages.error(request, "日付が選択されていません。")
             return redirect('accounts:home')
         
         # デバッグ用のログを追加
@@ -43,7 +43,7 @@ def edit_meal_plan(request, start_date, end_date):
     start_date_formatted = format_date_with_weekday(start_date)
     end_date_formatted = format_date_with_weekday(end_date)
     
-    selected_recipes = get_selected_recipes(start_date, end_date)
+    selected_recipes = get_selected_recipes(start_date, end_date, request.user)
 
     context = {
         'start_date': start_date_formatted,
@@ -56,12 +56,20 @@ def format_date_with_weekday(date):
     weekdays = ['月', '火', '水', '木', '金', '土', '日']
     return f"{date.month}/{date.day}（{weekdays[date.weekday()]}）"
 
-def get_selected_recipes(start_date, end_date):
-    # 各カテゴリのレシピを取得
-    staple_recipes = Recipe.objects.filter(menu_category=1)  # 主食
-    main_recipes = Recipe.objects.filter(menu_category=2)    # 主菜
-    side_recipes = Recipe.objects.filter(menu_category=3)    # 副菜
-    soup_recipes = Recipe.objects.filter(menu_category=4)    # 汁物
+def get_selected_recipes(start_date, end_date, user):
+    # 各カテゴリのレシピを取得（shareが1または現在のユーザーが作成したレシピ）
+    staple_recipes = Recipe.objects.filter(
+        models.Q(menu_category=1) & (models.Q(share=1) | models.Q(user=user))
+    )  # 主食
+    main_recipes = Recipe.objects.filter(
+        models.Q(menu_category=2) & (models.Q(share=1) | models.Q(user=user))
+    )    # 主菜
+    side_recipes = Recipe.objects.filter(
+        models.Q(menu_category=3) & (models.Q(share=1) | models.Q(user=user))
+    )    # 副菜
+    soup_recipes = Recipe.objects.filter(
+        models.Q(menu_category=4) & (models.Q(share=1) | models.Q(user=user))
+    )    # 汁物
 
     # 各カテゴリのレシピが存在することを確認
     if not (staple_recipes.exists() and main_recipes.exists() and side_recipes.exists() and soup_recipes.exists()):

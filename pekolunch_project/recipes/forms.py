@@ -98,9 +98,14 @@ class RecipeForm(forms.ModelForm):
     def __init__(self, *args, csv_file_path=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['average_evaluation'].widget = forms.HiddenInput()
-        self.fields['share'].initial = True
-        self.fields['is_avoid_main_dish'].initial = False
-        self.initial['serving'] = 1
+        if self.instance and self.instance.pk:
+            self.fields['share'].initial = bool(self.instance.share)
+            self.fields['is_avoid_main_dish'].initial = bool(self.instance.is_avoid_main_dish)
+            self.initial['serving'] = self.instance.serving
+        else:
+            self.fields['share'].initial = True
+            self.fields['is_avoid_main_dish'].initial = False
+            self.initial['serving'] = 1
     
         food_categories_qs = FoodCategory.objects.none()
         if csv_file_path:
@@ -125,6 +130,8 @@ class RecipeForm(forms.ModelForm):
 
     def save(self, commit=True):
         recipe = super().save(commit=False)
+        recipe.share = int(self.cleaned_data['share'])  # Booleanからintに変換して保存
+        recipe.is_avoid_main_dish = int(self.cleaned_data['is_avoid_main_dish'])  # Booleanからintに変換して保存
         if commit:
             recipe.save()
             food_categories = self.cleaned_data.get('food_categories')

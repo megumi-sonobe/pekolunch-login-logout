@@ -43,6 +43,12 @@ class Recipe(models.Model):
             self.average_evaluation = None
         self.save()
         
+    def can_view(self, user):
+        """指定されたユーザーがこのレシピを閲覧できるかを判定する"""
+        if self.share == 1 or self.user == user:
+            return True
+        return False
+        
         
 
     

@@ -19,6 +19,8 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 from accounts.models import Users
+from django.http import Http404
+from django.db import models
 
 User = get_user_model
 
@@ -61,6 +63,9 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
                 process_number = 1 if not last_process else last_process.process_number + 1
                 Process.objects.create(recipe=self.object, description=description, process_number=process_number)
                 
+        food_categories = self.request.POST.getlist('food_categories', [])
+        self.object.food_categories.set(food_categories)  # food_categoriesを保存
+                
     def save_user_evaluation(self):
         rating_value = self.request.POST.get('rating-value')
         print(f'Rating value: {rating_value}')  # デバッグ用
@@ -88,14 +93,17 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('recipes:recipe_detail', kwargs={'pk': self.object.pk})
     
     
-    
     def get_initial(self):
         initial = super().get_initial()
+        initial['share'] = bool(self.object.share)
+        initial['is_avoid_main_dish'] = bool(self.object.is_avoid_main_dish)
+        initial['serving'] = self.object.serving
         initial['food_categories'] = self.object.food_categories.all()
         return initial
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.get_object()
         kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
         return kwargs
     
@@ -105,9 +113,6 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
         user = self.request.user
         user_evaluation = UserEvaluation.objects.filter(user=user, recipe=recipe).first()
         context['user_evaluation'] = user_evaluation
-        # context['adult_count'] = user.adult_count
-        # context['children_count'] = user.children_count
-        # context['is_owner'] = recipe.user == user
         return context
     
     def form_valid(self, form):
@@ -214,8 +219,10 @@ class RecipeListView(LoginRequiredMixin,ListView):
     paginate_by = 10 #1ページあたりのアイテム数
     
     def get_queryset(self):
-        return Recipe.objects.order_by('-average_evaluation')
-    
+        user = self.request.user
+        # shareフィールドが1であるか、現在のユーザーが作成したレシピを表示
+        return Recipe.objects.filter(models.Q(share=1) | models.Q(user=user)).order_by('-average_evaluation')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         page_obj = context.get('page_obj')
@@ -229,7 +236,7 @@ def search(request):
     filters = request.GET.getlist('filter')
     user = request.user
     
-    recipes = Recipe.objects.all()
+    recipes = Recipe.objects.filter(models.Q(share=1) | models.Q(user=user))  # shareフィールドが1であるか、現在のユーザーが作成したレシピを表示
     
     if query:
         recipes = Recipe.objects.filter(recipe_name__icontains=query)
@@ -273,6 +280,12 @@ class RecipeDetailView(LoginRequiredMixin, DetailView):
     model = Recipe
     template_name = 'recipes/recipe_detail.html'
     context_object_name = 'recipe'
+    
+    def get_object(self, queryset=None):
+        recipe = super().get_object(queryset)
+        if not recipe.can_view(self.request.user):
+            raise Http404("You do not have permission to view this recipe.")
+        return recipe
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
