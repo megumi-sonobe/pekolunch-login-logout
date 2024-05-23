@@ -6,18 +6,59 @@
 
 {% block content %}
     <h2>献立編集</h2>
-    <h3>{{ date_range }}の献立</h3> <!-- フォーマットされた日付範囲を表示 -->
-
-    <ul>
+    <h3>{{ date_range }}の献立</h3>
+    
+    <div class="meal-plan-container">
         {% for plan in meal_plans %}
-            <li>
-                <h3>{{ plan.date }}</h3>
-                <ul>
-                    <li>主食: {{ plan.staple_recipe }}</li>
-                    <li>主菜: {{ plan.main_recipe }}</li>
-                    <li>副菜: {{ plan.side_recipe }}</li>
-                </ul>
-            </li>
+            <div class="meal-plan">
+                <h4>{{ plan.date }}</h4>
+                <div class="meal-items">
+                    <div class="meal-item">
+                        <h5>主食</h5>
+                        {% if plan.staple_recipe_image %}
+                            <img src="{{ plan.staple_recipe_image }}" alt="{{ plan.staple_recipe }}">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                        {% endif %}
+                        {% if plan.staple_recipe_id %}
+                            <p><a href="{% url 'recipes:recipe_detail' plan.staple_recipe_id %}">{{ plan.staple_recipe }}</a></p>
+                        {% else %}
+                            <p>{{ plan.staple_recipe }}</p>
+                        {% endif %}
+                        <p>平均評価：{{ plan.staple_recipe_evaluation|default:"評価なし" }}</p>
+                    </div>
+                    <div class="meal-item">
+                        <h5>主菜</h5>
+                        {% if plan.main_recipe_image %}
+                            <img src="{{ plan.main_recipe_image }}" alt="{{ plan.main_recipe }}">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                        {% endif %}
+                        {% if plan.main_recipe_id %}
+                            <p><a href="{% url 'recipes:recipe_detail' plan.main_recipe_id %}">{{ plan.main_recipe }}</a></p>
+                        {% else %}
+                            <p>{{ plan.main_recipe }}</p>
+                        {% endif %}
+                        <p>平均評価：{{ plan.main_recipe_evaluation|default:"評価なし" }}</p>
+                    </div>
+                    <div class="meal-item">
+                        <h5>副菜</h5>
+                        {% if plan.side_recipe_image %}
+                            <img src="{{ plan.side_recipe_image }}" alt="{{ plan.side_recipe }}">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                        {% endif %}
+                        {% if plan.side_recipe_id %}
+                            <p><a href="{% url 'recipes:recipe_detail' plan.side_recipe_id %}">{{ plan.side_recipe }}</a></p>
+                        {% else %}
+                            <p>{{ plan.side_recipe }}</p>
+                        {% endif %}
+                        <p>平均評価：{{ plan.side_recipe_evaluation|default:"評価なし" }}</p>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
 {% endblock %}
+
+

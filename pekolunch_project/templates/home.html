@@ -71,10 +71,26 @@
 
                 document.getElementById('startDate').value = startDate.toISOString().split('T')[0]; // 日付形式で設定
                 document.getElementById('endDate').value = endDate.toISOString().split('T')[0]; // 日付形式で設定
+
+                // 選択された日付にクラスを追加する
+                calendar.getEvents().forEach(event => event.remove());
+                const selectedDays = [];
+                let currentDay = startDate;
+                while (currentDay <= endDate) {
+                    selectedDays.push(new Date(currentDay));
+                    currentDay.setDate(currentDay.getDate() + 1);
+                }
+                selectedDays.forEach(day => {
+                    calendar.addEvent({
+                        start: day,
+                        allDay: true,
+                        display: 'background',
+                        //backgroundColor: '#ffb7c5' // 任意の色に変更
+                    });
+                });
             },
             dayMaxEvents: true,
             selectOverlap: false,
-            selectClassNames: ['selected-day']
         });
         calendar.render();
     });

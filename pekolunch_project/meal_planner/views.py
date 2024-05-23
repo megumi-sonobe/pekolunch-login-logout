@@ -92,7 +92,16 @@ class EditMealPlanView(LoginRequiredMixin, View):
                 'date': self.format_date_with_weekday(plan.meal_date),
                 'staple_recipe': plan.staple_recipe.recipe_name if plan.staple_recipe else '主食レシピが不足しています',
                 'main_recipe': plan.main_recipe.recipe_name if plan.main_recipe else '主菜レシピが不足しています',
-                'side_recipe': plan.side_recipe.recipe_name if plan.side_recipe else '副菜レシピが不足しています'
+                'side_recipe': plan.side_recipe.recipe_name if plan.side_recipe else '副菜レシピが不足しています',
+                'staple_recipe_id': plan.staple_recipe.id if plan.staple_recipe else None,
+                'main_recipe_id': plan.main_recipe.id if plan.main_recipe else None,
+                'side_recipe_id': plan.side_recipe.id if plan.side_recipe else None,
+                'staple_recipe_image': plan.staple_recipe.image_url.url if plan.staple_recipe and plan.staple_recipe.image_url else None,
+                'main_recipe_image': plan.main_recipe.image_url.url if plan.main_recipe and plan.main_recipe.image_url else None,
+                'side_recipe_image': plan.side_recipe.image_url.url if plan.side_recipe and plan.side_recipe.image_url else None,
+                'staple_recipe_evaluation': plan.staple_recipe.average_evaluation if plan.staple_recipe else None,
+                'main_recipe_evaluation': plan.main_recipe.average_evaluation if plan.main_recipe else None,
+                'side_recipe_evaluation': plan.side_recipe.average_evaluation if plan.side_recipe else None
             }
             formatted_meal_plans.append(formatted_plan)
             print(f"Formatted Meal Plan: {formatted_plan}")
