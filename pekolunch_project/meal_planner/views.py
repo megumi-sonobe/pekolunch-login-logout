@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import models
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.contrib import messages
 from .models import Recipe,MealPlan
 
@@ -165,3 +165,9 @@ class EditMealPlanView(LoginRequiredMixin, View):
         print(f"Selected Recipes on {date}: {selected_recipes}")
     
         return selected_recipes
+    
+class MealPlanDatesView(LoginRequiredMixin, View):
+    def get(self, request):
+        meal_plans = MealPlan.objects.filter(user=request.user).values('meal_date')
+        dates = [meal_plan['meal_date'] for meal_plan in meal_plans]
+        return JsonResponse(dates, safe=False)

@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
+
 {% block title %}
-    ホーム - peko Lunch
+ホーム - peko Lunch
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid mt-4">
     <div class="welcome-message">
         <p>{{ username }}さん、ようこそ。 peko Lunchへ。</p>
     </div>
@@ -21,17 +23,35 @@
         </div>
     {% endif %}
 
-    <div id='calendar'></div>
-    <div id="create-meal-plan-btn-container">
+    <div class="row">
+        <div class="col-md-12">
+            <div id='calendar'></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 mt-3">
+            <div id="legend">
+                <ul class="list-inline">
+                    <li class="list-inline-item"><span class="legend-color" style="background-color: #ffb7c5;"></span> すでに献立がある日</li>
+                    <li class="list-inline-item"><span class="legend-color" style="background-color: #ffffcc;"></span> 今日</li>
+                    <li class="list-inline-item"><span class="legend-color" style="background-color: #add8e6;"></span> 選択中の日</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-meal-plan-btn-container" class="mt-4">
         <p id="selectedDateDisplay">献立を作成する日：</p> <!-- 選択された日付を表示するための要素 -->
-        
+
         <form id="dateForm" method="post" action="{% url 'meal_planner:create_meal_plans' %}">
             {% csrf_token %}
             <input type="hidden" id="startDate" name="start_date">
             <input type="hidden" id="endDate" name="end_date">
-            <button type="submit">献立作成</button>
+            <button type="submit" class="btn btn-primary">献立作成</button>
         </form>
     </div>
+</div>
 {% endblock %}
 
 {% block javascript %}
@@ -42,63 +62,89 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'ja', // 日本語を適用する
-            timeZone: 'Asia/Tokyo', // タイムゾーンを設定
-            headerToolbar: {
-                left: 'prev',
-                center: 'title',
-                right: 'next'
-            },
-            titleFormat: { year: 'numeric', month: 'long' },
-            selectable: true,
-            selectAllow: function(selectInfo) {
-                const maxSelectableDays = 7;
-                const selectRange = selectInfo.end.getTime() - selectInfo.start.getTime();
-                return selectRange > 0 && selectRange <= maxSelectableDays * 24 * 60 * 60 * 1000;
-            },
-            select: function(info) {
-                // 選択された日時をAsia/Tokyoタイムゾーンに変換
-                const startDate = moment(info.start).tz('Asia/Tokyo').toDate();
-                const endDate = moment(info.end).tz('Asia/Tokyo').subtract(1, 'day').toDate(); // 終了日を1日引く
+        if (calendarEl) {
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja', // 日本語を適用する
+                timeZone: 'Asia/Tokyo', // タイムゾーンを設定
+                headerToolbar: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                titleFormat: { year: 'numeric', month: 'long' },
+                selectable: true,
+                selectAllow: function(selectInfo) {
+                    const maxSelectableDays = 7;
+                    const selectRange = selectInfo.end.getTime() - selectInfo.start.getTime();
+                    return selectRange > 0 && selectRange <= maxSelectableDays * 24 * 60 * 60 * 1000;
+                },
+                select: function(info) {
+                    // 選択された日時をAsia/Tokyoタイムゾーンに変換
+                    const startDate = moment(info.start).tz('Asia/Tokyo').toDate();
+                    const endDate = moment(info.end).tz('Asia/Tokyo').subtract(1, 'day').toDate(); // 終了日を1日引く
 
-                console.log("Start Date (Asia/Tokyo):", startDate); // デバッグ用
-                console.log("End Date (Asia/Tokyo):", endDate); // デバッグ用
+                    console.log("Start Date (Asia/Tokyo):", startDate); // デバッグ用
+                    console.log("End Date (Asia/Tokyo):", endDate); // デバッグ用
 
-                const dateRangeString = formatDateRange(startDate, endDate);
-                document.getElementById('selectedDateDisplay').textContent = "献立を作成する日：" + dateRangeString;
+                    const dateRangeString = formatDateRange(startDate, endDate);
+                    document.getElementById('selectedDateDisplay').textContent = "献立を作成する日：" + dateRangeString;
 
-                document.getElementById('startDate').value = startDate.toISOString().split('T')[0]; // 日付形式で設定
-                document.getElementById('endDate').value = endDate.toISOString().split('T')[0]; // 日付形式で設定
+                    document.getElementById('startDate').value = startDate.toISOString().split('T')[0]; // 日付形式で設定
+                    document.getElementById('endDate').value = endDate.toISOString().split('T')[0]; // 日付形式で設定
 
-                // 選択された日付にクラスを追加する
-                calendar.getEvents().forEach(event => event.remove());
-                const selectedDays = [];
-                let currentDay = startDate;
-                while (currentDay <= endDate) {
-                    selectedDays.push(new Date(currentDay));
-                    currentDay.setDate(currentDay.getDate() + 1);
-                }
-                selectedDays.forEach(day => {
-                    calendar.addEvent({
-                        start: day,
-                        allDay: true,
-                        display: 'background',
-                        //backgroundColor: '#ffb7c5' // 任意の色に変更
+                    // 既存の選択イベントを削除
+                    calendar.getEvents().forEach(event => {
+                        if (event.extendedProps.selectEvent) {
+                            event.remove();
+                        }
                     });
-                });
-            },
-            dayMaxEvents: true,
-            selectOverlap: false,
-        });
-        calendar.render();
+
+                    // 選択された日付にクラスを追加する
+                    const selectedDays = [];
+                    let currentDay = startDate;
+                    while (currentDay <= endDate) {
+                        selectedDays.push(new Date(currentDay));
+                        currentDay.setDate(currentDay.getDate() + 1);
+                    }
+                    selectedDays.forEach(day => {
+                        calendar.addEvent({
+                            start: day,
+                            allDay: true,
+                            display: 'background',
+                            backgroundColor: '#add8e6', // 選択中の日付の背景色
+                            extendedProps: {
+                                selectEvent: true
+                            }
+                        });
+                    });
+                },
+                dayMaxEvents: true,
+                selectOverlap: false,
+            });
+
+            // バックエンドから献立の日付を取得してカレンダーに表示する
+            fetch("{% url 'meal_planner:meal_plan_dates' %}")
+                .then(response => response.json())
+                .then(dates => {
+                    dates.forEach(date => {
+                        calendar.addEvent({
+                            start: date,
+                            allDay: true,
+                            display: 'background',
+                            backgroundColor: '#ffb7c5' // 献立作成済みの日付の背景色
+                        });
+                    });
+                })
+                .catch(error => console.error('Error fetching meal plan dates:', error));
+
+            calendar.render();
+        }
     });
 
     function formatDateRange(startDate, endDate) {
         const startDay = startDate.getDate();
         const startMonth = startDate.getMonth() + 1;
-
         const endDay = endDate.getDate();
         const endMonth = endDate.getMonth() + 1;
 
