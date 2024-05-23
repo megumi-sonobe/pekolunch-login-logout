@@ -6,11 +6,18 @@
 
 {% block content %}
     <h2>献立編集</h2>
-    <p>{{ start_date }} 〜 {{ end_date }}</p> <!-- フォーマットされた日付を表示 -->
+    <h3>{{ date_range }}の献立</h3> <!-- フォーマットされた日付範囲を表示 -->
+
     <ul>
-        <li>主食: {{ selected_recipes.staple_recipe.recipe_name }}</li>
-        <li>主菜: {{ selected_recipes.main_recipe.recipe_name }}</li>
-        <li>副菜: {{ selected_recipes.side_recipe.recipe_name }}</li>
-        <li>汁物: {{ selected_recipes.soup_recipe.recipe_name }}</li>
+        {% for plan in meal_plans %}
+            <li>
+                <h3>{{ plan.date }}</h3>
+                <ul>
+                    <li>主食: {{ plan.staple_recipe }}</li>
+                    <li>主菜: {{ plan.main_recipe }}</li>
+                    <li>副菜: {{ plan.side_recipe }}</li>
+                </ul>
+            </li>
+        {% endfor %}
     </ul>
 {% endblock %}

@@ -221,17 +221,13 @@ class LoadFoodCategoriesView(View):
         try:
             with open(csv_file_path, 'r', encoding='utf-8') as file:
                 reader = csv.reader(file)
-                food_categories = [row[0] for row in reader]  # CSVファイルから食材カテゴリを読み込む
+                food_categories = [row[0] for row in reader if row]  # 空の行を除外
                 
-            if food_categories:
-                return JsonResponse({'food_categories': food_categories})
-            else:
-                return JsonResponse({'error': 'CSVファイルが見つかりませんでした'}, status=404)
+            return JsonResponse({'food_categories': food_categories})
         
-        except FileNotFoundError:
-            return JsonResponse({'error': 'CSVファイルが見つかりませんでした'}, status=404)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+        except Exception:
+            # エラーが発生した場合は空のリストを返す
+            return JsonResponse({'food_categories': []})
 
 
 class RecipeListView(LoginRequiredMixin,ListView):
