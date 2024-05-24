@@ -65,8 +65,8 @@
         if (calendarEl) {
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
-                locale: 'ja', // 日本語を適用する
-                timeZone: 'Asia/Tokyo', // タイムゾーンを設定
+                locale: 'ja',
+                timeZone: 'Asia/Tokyo', 
                 headerToolbar: {
                     left: 'prev',
                     center: 'title',
@@ -123,7 +123,7 @@
                 selectOverlap: false,
             });
 
-            // バックエンドから献立の日付を取得してカレンダーに表示する
+            // viewから献立の日付を取得してカレンダーに表示する
             fetch("{% url 'meal_planner:meal_plan_dates' %}")
                 .then(response => response.json())
                 .then(dates => {
