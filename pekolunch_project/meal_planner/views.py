@@ -82,7 +82,8 @@ class EditMealPlanView(LoginRequiredMixin, View):
         for plan in MealPlan.objects.all():
             print(plan)
 
-        meal_plans = MealPlan.objects.filter(user=request.user, meal_date__range=[start_date, end_date])
+        # 日付順にソートするためにorder_byを使用
+        meal_plans = MealPlan.objects.filter(user=request.user, meal_date__range=[start_date, end_date]).order_by('meal_date')
         print(f"Retrieved Meal Plans: {meal_plans}")
 
         formatted_meal_plans = []
@@ -171,3 +172,9 @@ class MealPlanDatesView(LoginRequiredMixin, View):
         meal_plans = MealPlan.objects.filter(user=request.user).values('meal_date')
         dates = [meal_plan['meal_date'] for meal_plan in meal_plans]
         return JsonResponse(dates, safe=False)
+    
+class WeeklyMealPlanView(LoginRequiredMixin, View):
+    def get(self, request):
+        start_date = datetime.date.today()
+        end_date = start_date + datetime.timedelta(days=6)  # 今日から1週間の範囲
+        return redirect('meal_planner:edit_meal_plan', start_date=start_date.isoformat(), end_date=end_date.isoformat())
