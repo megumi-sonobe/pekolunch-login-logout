@@ -8,14 +8,14 @@ from django.http import HttpResponse,JsonResponse
 from django.contrib import messages
 from .models import Recipe,MealPlan
 
-class MealPlannerHomeView(LoginRequiredMixin, View):
-    def get(self, request):
-        print("Home view accessed")  # ビューにアクセスしたことを確認するメッセージ
-        if request.user.is_authenticated:
-            print(f"Logged in as: {request.user.username}")  # ユーザー名を出力
-        else:
-            print("User is not authenticated")
-        return render(request, 'home.html', {'username': request.user.username})
+# class MealPlannerHomeView(LoginRequiredMixin, View):
+#     def get(self, request):
+#         print("Home view accessed")  # ビューにアクセスしたことを確認するメッセージ
+#         if request.user.is_authenticated:
+#             print(f"Logged in as: {request.user.username}")  # ユーザー名を出力
+#         else:
+#             print("User is not authenticated")
+#         return render(request, 'home.html', {'username': request.user.username})
 
 class CreateMealPlansView(LoginRequiredMixin, View):
     def post(self, request):

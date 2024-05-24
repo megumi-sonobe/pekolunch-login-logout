@@ -1,3 +1,58 @@
+.container{
+    padding: 20px !important;
+    margin: auto !important;
+    max-width: 1200px !important;
+}
+
+.navbar {
+    background-color: #f8f9fa; /* 背景色の変更 */
+    padding: 10px 20px; /* パディングの追加 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* シャドウを追加して浮き上がらせる */
+}
+
+.navbar-brand {
+    font-size: 1.5rem; /* ブランド名の文字サイズ */
+    font-weight: bold; /* ブランド名の文字を太字に */
+    margin-right: 50px; /* ブランド名とナビゲーションメニューの間にスペースを追加 */
+}
+
+.navbar-nav .nav-item {
+    margin-right: 30px; /* 各ナビゲーション項目の右側にマージンを追加 */
+}
+
+
+
+.navbar-nav .nav-link:hover {
+    color: #000; /* ホバー時のナビゲーションリンクの色 */
+    text-decoration: underline; /* ホバー時に下線を追加 */
+}
+
+.navbar-toggler {
+    border: none; /* トグルボタンのボーダーをなしに */
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%2855, 55, 55, 1%29' stroke-width='2' linecap='round' linejoin='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); /* トグルアイコンの色を調整 */
+}
+
+.welcome-message p {
+    font-size: 1.2rem; /* ウェルカムメッセージの文字サイズ */
+    font-weight: bold; /* ウェルカムメッセージの文字を太字に */
+}
+
+.navbar-nav .nav-item {
+    margin-right: 15px; /* 右側に15pxのマージンを追加 */
+}
+
+.navbar-nav .nav-item:last-child {
+    margin-right: 0; /* 最後のアイテムにはマージンを追加しない */
+}
+
+
+calendar {
+    height: auto; /* カレンダーの高さを自動調整 */
+    max-height: 200px; /* カレンダーの最大高さを設定 */
+}
 
 #create-meal-plan-btn-container{
     text-align: center;

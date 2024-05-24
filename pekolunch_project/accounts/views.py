@@ -17,6 +17,7 @@ class AccountsHomeView(LoginRequiredMixin,TemplateView):
     template_name = 'home.html'
     
     def get_context_data(self, **kwargs): 
+        print("AccountsHomeView accessed") 
         context = super().get_context_data(**kwargs)
         context['username'] = self.request.user.username
         context['my_page_url'] = reverse_lazy('accounts:my_page')
