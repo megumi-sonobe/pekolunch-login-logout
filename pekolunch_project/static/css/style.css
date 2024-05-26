@@ -4,6 +4,25 @@
     max-width: 1200px !important;
 }
 
+.container-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* 画面全体の高さに対して中央に配置 */
+}
+
+.center-content {
+    text-align: center;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    max-width: 400px;
+    width: 100%;
+    margin: 20px auto;
+}
+
 .navbar {
     background-color: #f8f9fa; /* 背景色の変更 */
     padding: 10px 20px; /* パディングの追加 */

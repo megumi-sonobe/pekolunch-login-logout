@@ -3,58 +3,57 @@
 <head>
     <meta charset="utf-8">
     <title>新規アカウント登録-peko Lunch</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>新規アカウント登録</h1>
-
-    <form method="post">
-        {% csrf_token %}
-        <div>
-            <label for="id_username">名前/ニックネーム：</label>
-            <input type="text" name="username" id="id_username" required>
+    <div class="container-center">
+        <div class="center-content">
+            <h2>新規アカウント登録</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div>
+                    <label for="id_username">名前/ニックネーム：</label>
+                    <input type="text" name="username" id="id_username" required>
+                </div>
+                <div>
+                    <label for="id_email">メールアドレス：</label>
+                    <input type="email" name="email" id="id_email" required>
+                    {% if form.email.errors %}
+                        <ul>
+                        {% for error in form.email.errors %}
+                            <li style="color:red;">{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_password">パスワード：</label>
+                    <input type="password" name="password" id="id_password" required>
+                </div>
+                <div>
+                    <label for="id_password2">パスワード再入力：</label>
+                    <input type="password" name="confirm_password" id="id_password2" required>
+                    {% if form.confirm_password.errors %}
+                        <ul>
+                        {% for error in form.confirm_password.errors %}
+                            <li style="color: red;">{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if form.password.errors %}
+                        <ul>
+                        {% for error in form.password.errors %}
+                            <li style="color: red;">{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+                <button type="submit">登録</button>
+            </form>
+            <p><a href="{% url 'accounts:user_login' %}">ログイン画面へ戻る</a></p>
         </div>
-
-        <div>
-            <label for="id_email">メールアドレス：</label>
-            <input type="email" name="email" id="id_email" required>
-            {% if form.email.errors %}
-                <ul>
-                {% for error in form.email.errors %}
-                    <li style="color:red;">{{ error }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-
-        <div>
-            <label for="id_password">パスワード：</label>
-            <input type="password" name="password" id="id_password" required>
-
-        </div>
-
-        <div>
-            <label for="id_password2">パスワード再入力：</label>
-            <input type="password" name="confirm_password" id="id_password2" required>
-            {% if form.confirm_password.errors %}
-                <ul>
-                {% for error in form.confirm_password.errors %}
-                    <li style="color: red;">{{ error }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-            
-            {% if form.password.errors %}
-                <ul>
-                {% for error in form.password.errors %}
-                    <li style="color: red;">{{ error }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-
-
-        <button type="submit">登録</button>
-    </form>
+    </div>
 </body>
 </html>
 

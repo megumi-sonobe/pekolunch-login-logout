@@ -30,7 +30,7 @@
                             {% else %}
                                 <p>{{ plan.staple_recipe }}</p>
                             {% endif %}
-                            <p>平均評価：{{ plan.staple_recipe_evaluation }}</p>
+                            <p>平均評価：{{ plan.staple_recipe_evaluation|default:"評価なし" }}</p>
                         {% else %}
                             <p>献立なし</p>
                         {% endif %}
@@ -48,7 +48,7 @@
                             {% else %}
                                 <p>{{ plan.main_recipe }}</p>
                             {% endif %}
-                            <p>平均評価：{{ plan.main_recipe_evaluation }}</p>
+                            <p>平均評価：{{ plan.main_recipe_evaluation|default:"評価なし" }}</p>
                         {% else %}
                             <p>献立なし</p>
                         {% endif %}
@@ -66,7 +66,7 @@
                             {% else %}
                                 <p>{{ plan.side_recipe }}</p>
                             {% endif %}
-                            <p>平均評価：{{ plan.side_recipe_evaluation }}</p>
+                            <p>平均評価：{{ plan.side_recipe_evaluation|default:"評価なし" }}</p>
                         {% else %}
                             <p>献立なし</p>
                         {% endif %}

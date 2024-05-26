@@ -3,26 +3,32 @@
 <head>
     <meta charset="utf-8">
     <title>ログイン-peko Lunch </title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>peko Lunch</h1>
-    {% if messages %}
-        {% for message in messages %}
-        <div> {{ message.message }}</div>
-        {% endfor %}
-    {% endif %}
-
-    <form method="post">
-        {% csrf_token %}
-        <div>
-            <label for="id_email">メールアドレス：</label>
-            <input type="email" name="email" id="email" required>
+    <div class="container-center">
+        <div class="center-content">
+            <h1>peko Lunch</h1>
+            {% if messages %}
+                {% for message in messages %}
+                    <div>{{ message.message }}</div>
+                {% endfor %}
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div>
+                    <label for="id_email">メールアドレス：</label>
+                    <input type="email" name="email" id="email" required>
+                </div>
+                <div>
+                    <label for="id_password">パスワード：</label>
+                    <input type="password" name="password" id="id_password" required>
+                </div>
+                <button type="submit">ログイン</button>
+            </form>
+            <p><a href="{% url 'accounts:regist' %}">新規アカウント登録</a></p>
         </div>
-        <div>
-            <label for="id_password">パスワード：</label>
-            <input type="password" name="password" id="id_password" required>
-        </div>
-        <button type="submit">ログイン</button>
-    </form>
-    <p><a href="{% url 'accounts:regist' %}">新規アカウント登録</a></p>
+    </div>
 </body>
+</html>

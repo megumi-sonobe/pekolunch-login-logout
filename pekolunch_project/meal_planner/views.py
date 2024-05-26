@@ -7,6 +7,7 @@ from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import Recipe, MealPlan
+from django.urls import reverse
 
 class CreateMealPlansView(LoginRequiredMixin, View):
     def post(self, request):
@@ -28,7 +29,8 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         for date in date_list:
             self.save_meal_plan(date, user)
 
-        return redirect('meal_planner:edit_meal_plan', start_date=start_date, end_date=end_date, view_mode='custom')
+        url = reverse('meal_planner:edit_meal_plan', kwargs={'start_date': start_date, 'end_date': end_date})
+        return redirect(f"{url}?view_mode=custom")
     
     def get(self, request):
         return HttpResponse("不正なリクエストメソッドです", status=405)

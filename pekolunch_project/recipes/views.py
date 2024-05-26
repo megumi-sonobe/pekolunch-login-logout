@@ -6,7 +6,7 @@ from .forms import RecipeForm, ProcessForm, IngredientForm
 from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Recipe, UserEvaluation, Process, Ingredient
+from .models import Recipe, UserEvaluation, Process, Ingredient,FoodCategory
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -22,6 +22,7 @@ from accounts.models import Users
 from django.http import Http404,HttpResponseRedirect
 from django.db import models
 from django.contrib.messages.views import SuccessMessageMixin
+from fractions import Fraction
 
 User = get_user_model()
 
@@ -29,7 +30,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
     form_class = RecipeForm 
     template_name = 'recipes/my_recipe.html'
-    # success_url = reverse_lazy('accounts:home')
+   
     
     def form_valid(self, form):
         try:
@@ -39,7 +40,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
             self.save_related_instances()
             self.save_user_evaluation()
             messages.success(self.request, f"レシピに「{self.object.recipe_name}」が登録されました。")
-            return redirect('recipes:my_recipe_create')  # 遷移先を再びマイレシピ登録ページに設定
+            return redirect('recipes:my_recipe_create')  
         except Exception as e:
             print(f"Exception occurred during form submission: {e}")
             return self.form_invalid(form)
@@ -66,7 +67,11 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
                 
         food_categories = self.request.POST.getlist('food_categories', [])
         self.object.food_categories.set(food_categories)  # food_categoriesを保存
-                
+        
+        # フードカテゴリーのIDと名前を取得して表示
+        food_categories_with_names = [(category.id, category.food_category_name) for category in FoodCategory.objects.filter(id__in=food_categories)]
+        print(f"選択したフードカテゴリー: {food_categories_with_names}")
+    
     def save_user_evaluation(self):
         rating_value = self.request.POST.get('rating-value')
         print(f'Rating value: {rating_value}')  # デバッグ用
@@ -152,7 +157,6 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
 
     def save_user_evaluation(self):
         rating_value = self.request.POST.get('rating-value')
-        # print(f'Rating value: {rating_value}')  # デバッグ用
         if rating_value is not None and rating_value.isdigit():
             evaluation = int(rating_value)
             UserEvaluation.objects.update_or_create(
@@ -202,16 +206,13 @@ class SaveRatingView(LoginRequiredMixin, View):
                         recipe=recipe,
                         defaults={'evaluation': evaluation}
                     )
-                    # print("Rating saved successfull")  # デバッグ用
+                    
                     return JsonResponse({'success': True})
                 except Recipe.DoesNotExist:
-                    # print("Recipe not found")  # デバッグ用
                     return JsonResponse({'success': False, 'error': 'Recipe not found'})
             else:
-                # print("Invalid request parameters")  # デバッグ用
                 return JsonResponse({'success': False, 'error': 'Invalid request'})
         except Exception as e:
-            # print(f"Exception: {e}")  # デバッグ用
             return JsonResponse({'success': False, 'error': str(e)})
 
 class LoadFoodCategoriesView(View):
@@ -351,16 +352,21 @@ class RecipeDetailView(LoginRequiredMixin, DetailView):
 
         return redirect('recipes:recipe_detail', pk=recipe.pk)
 
+
 def adjust_quantity(quantity, ratio):
-    pattern = r'([0-9]+\.?[0-9]*)'
-    match = re.search(pattern, quantity)
-    
-    if match:
-        original_quantity = float(match.group(1))
-        adjusted_quantity = original_quantity * ratio
-        # 数値部分を置換して元の形式に戻す
-        adjusted_quantity_str = re.sub(pattern, f'{adjusted_quantity:.1f}', quantity)
-        return adjusted_quantity_str
-    else:
-        # 数量が数値でない場合はそのまま返す（例: "適量"など）
-        return quantity
+    def replace_quantity(match):
+        original_quantity_str = match.group(0)
+        try:
+            if '/' in original_quantity_str:
+                original_quantity = float(Fraction(original_quantity_str))
+            else:
+                original_quantity = float(original_quantity_str)
+            adjusted_quantity = original_quantity * ratio
+            rounded_quantity = round(adjusted_quantity * 2) / 2  # 0.5単位で四捨五入
+            return f'{rounded_quantity:.1f}'.rstrip('0').rstrip('.')
+        except ValueError:
+            return original_quantity_str
+
+    pattern = r'(\d+/\d+|\d+\.\d+|\d+)'
+    adjusted_quantity = re.sub(pattern, replace_quantity, quantity)
+    return adjusted_quantity
