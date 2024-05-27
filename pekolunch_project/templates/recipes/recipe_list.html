@@ -38,8 +38,8 @@
         <div class="pagination">
             <span class="step-links">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1">&laquo; 最初</a>
-                    <a href="?page={{ page_obj.previous_page_number }}">前へ</a>
+                    <a href="?page=1{% if request.GET.from_edit_meal_plan %}&from_edit_meal_plan={{ request.GET.from_edit_meal_plan }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}">&laquo; 最初</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.from_edit_meal_plan %}&from_edit_meal_plan={{ request.GET.from_edit_meal_plan }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}">前へ</a>
                 {% endif %}
 
                 <span class="current">
@@ -47,8 +47,8 @@
                 </span>
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}">次へ</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}">最後 &raquo;</a>
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.from_edit_meal_plan %}&from_edit_meal_plan={{ request.GET.from_edit_meal_plan }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}">次へ</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.from_edit_meal_plan %}&from_edit_meal_plan={{ request.GET.from_edit_meal_plan }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}">最後 &raquo;</a>
                 {% endif %}
             </span>
         </div>
@@ -57,33 +57,36 @@
 
     <div class="sidebar">
         <form method="GET" action="{% url 'recipes:search' %}">
-            <input type="text" name="q" placeholder="料理名で検索">
+            <input type="text" name="q" placeholder="料理名で検索" value="{{ request.GET.q }}">
+            <input type="hidden" name="from_edit_meal_plan" value="{{ request.GET.from_edit_meal_plan }}">
+            <input type="hidden" name="date" value="{{ request.GET.date }}">
+            <input type="hidden" name="meal_type" value="{{ request.GET.meal_type }}">
             <button type="submit" class="search-button">検索</button>
             <br><br>
                 
             <h4>条件検索</h4>
             <div>
-                <input type="checkbox" id="my_recipe" name="filter" value="my_recipe">
+                <input type="checkbox" id="my_recipe" name="filter" value="my_recipe" {% if 'my_recipe' in request.GET.filter %}checked{% endif %}>
                 <label for="my_recipe">マイレシピ</label>
             </div>
             <div>
-                <input type="checkbox" id="three_star" name="filter" value="three_star">
+                <input type="checkbox" id="three_star" name="filter" value="three_star" {% if 'three_star' in request.GET.filter %}checked{% endif %}>
                 <label for="three_star">三つ星レシピ</label>
             </div>
             <div>
-                <input type="checkbox" id="main_dish" name="filter" value="main_dish">
+                <input type="checkbox" id="main_dish" name="filter" value="main_dish" {% if 'main_dish' in request.GET.filter %}checked{% endif %}>
                 <label for="main_dish">主食</label>
             </div>
             <div>
-                <input type="checkbox" id="side_dish" name="filter" value="side_dish">
+                <input type="checkbox" id="side_dish" name="filter" value="side_dish" {% if 'side_dish' in request.GET.filter %}checked{% endif %}>
                 <label for="side_dish">主菜</label>
             </div>
             <div>
-                <input type="checkbox" id="sub_dish" name="filter" value="sub_dish">
+                <input type="checkbox" id="sub_dish" name="filter" value="sub_dish" {% if 'sub_dish' in request.GET.filter %}checked{% endif %}>
                 <label for="sub_dish">副菜</label>
             </div>
             <div>
-                <input type="checkbox" id="soup" name="filter" value="soup">
+                <input type="checkbox" id="soup" name="filter" value="soup" {% if 'soup' in request.GET.filter %}checked{% endif %}>
                 <label for="soup">汁物</label>
             </div>
 
