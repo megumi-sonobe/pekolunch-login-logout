@@ -31,8 +31,10 @@
                                 <p>{{ plan.staple_recipe }}</p>
                             {% endif %}
                             <p>平均評価：{{ plan.staple_recipe_evaluation|default:"評価なし" }}</p>
+                            <button onclick="location.href='{% url 'recipes:recipe_list' %}?from_edit_meal_plan=True&date={{ plan.date }}&meal_type=staple'">料理変更</button>
                         {% else %}
                             <p>献立なし</p>
+                            <button onclick="location.href='{% url 'recipes:recipe_list' %}?from_edit_meal_plan=True&date={{ plan.date }}&meal_type=staple'">料理追加</button>
                         {% endif %}
                     </div>
                     <div class="meal-item">
@@ -49,8 +51,10 @@
                                 <p>{{ plan.main_recipe }}</p>
                             {% endif %}
                             <p>平均評価：{{ plan.main_recipe_evaluation|default:"評価なし" }}</p>
+                            <button onclick="location.href='{% url 'recipes:recipe_list' %}?from_edit_meal_plan=True&date={{ plan.date }}&meal_type=main'">料理変更</button>
                         {% else %}
                             <p>献立なし</p>
+                            <button onclick="location.href='{% url 'recipes:recipe_list' %}?from_edit_meal_plan=True&date={{ plan.date }}&meal_type=main'">料理追加</button>
                         {% endif %}
                     </div>
                     <div class="meal-item">
@@ -67,8 +71,10 @@
                                 <p>{{ plan.side_recipe }}</p>
                             {% endif %}
                             <p>平均評価：{{ plan.side_recipe_evaluation|default:"評価なし" }}</p>
+                            <button onclick="location.href='{% url 'recipes:recipe_list' %}?from_edit_meal_plan=True&date={{ plan.date }}&meal_type=side'">料理変更</button>
                         {% else %}
                             <p>献立なし</p>
+                            <button onclick="location.href='{% url 'recipes:recipe_list' %}?from_edit_meal_plan=True&date={{ plan.date }}&meal_type=side'">料理追加</button>
                         {% endif %}
                     </div>
                 </div>

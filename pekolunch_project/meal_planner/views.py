@@ -8,6 +8,8 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import Recipe, MealPlan
 from django.urls import reverse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 class CreateMealPlansView(LoginRequiredMixin, View):
     def post(self, request):
@@ -148,3 +150,31 @@ class WeeklyMealPlanView(LoginRequiredMixin, View):
         start_date = datetime.date.today()
         end_date = start_date + datetime.timedelta(days=6)  # 今日から1週間の範囲
         return redirect(f'/meal_planner/edit_meal_plan/{start_date}/{end_date}/?view_mode=weekly')
+    
+@login_required
+@require_POST
+def select_recipe(request):
+    recipe_id = request.POST.get('recipe_id')
+    date = request.POST.get('date')
+    meal_type = request.POST.get('meal_type')
+
+    # dateを文字列からdateオブジェクトに変換
+    meal_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+
+    try:
+        recipe = Recipe.objects.get(id=recipe_id)
+        meal_plan, created = MealPlan.objects.get_or_create(user=request.user, meal_date=meal_date)
+
+        if meal_type == 'staple':
+            meal_plan.staple_recipe = recipe
+        elif meal_type == 'main':
+            meal_plan.main_recipe = recipe
+        elif meal_type == 'side':
+            meal_plan.side_recipe = recipe
+
+        meal_plan.save()
+    except Recipe.DoesNotExist:
+        # レシピが存在しない場合の処理
+        pass
+
+    return redirect('meal_planner:edit_meal_plan', start_date=date, end_date=date)

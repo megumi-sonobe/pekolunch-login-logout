@@ -7,8 +7,6 @@
 {% block content %}
 <div class="content-container">
     <div class="main-content">
-        
-
         <h2>レシピ一覧</h2>
 
         {% if not recipes %}
@@ -28,6 +26,9 @@
                             <p>{{ recipe.recipe_name }}</p>
                         </a>
                         <p>平均評価：{{ recipe.average_evaluation|default:"評価なし" }}</p>
+                        {% if request.GET.from_edit_meal_plan %}
+                            <button onclick="selectRecipe('{{ recipe.id }}', '{{ request.GET.date }}', '{{ request.GET.meal_type }}')">このレシピを選択</button>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>
@@ -51,7 +52,6 @@
                 {% endif %}
             </span>
         </div>
-
         <!-- ここまでがページネーションリンクの追加部分 -->
     </div>
 
@@ -59,8 +59,7 @@
         <form method="GET" action="{% url 'recipes:search' %}">
             <input type="text" name="q" placeholder="料理名で検索">
             <button type="submit" class="search-button">検索</button>
-            <br>
-            <br>
+            <br><br>
                 
             <h4>条件検索</h4>
             <div>
@@ -92,4 +91,54 @@
         </form>
     </div>
 </div>
+
+<script>
+function parseDateString(dateString) {
+    const dateParts = dateString.split('（')[0].split('/');
+    const month = parseInt(dateParts[0], 10) - 1; // 月は0から始まるので -1 する
+    const day = parseInt(dateParts[1], 10);
+    const year = new Date().getFullYear(); // 現在の年を取得
+    return new Date(year, month, day);
+}
+
+function selectRecipe(recipeId, date, mealType) {
+    const parsedDate = parseDateString(date);
+
+    // ローカルタイムで日付をフォーマット
+    const formattedDate = parsedDate.getFullYear() + '-' +
+                          ('0' + (parsedDate.getMonth() + 1)).slice(-2) + '-' +
+                          ('0' + parsedDate.getDate()).slice(-2);
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "meal_planner:select_recipe" %}';
+
+    var csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = '{{ csrf_token }}';
+    form.appendChild(csrfToken);
+
+    var recipeInput = document.createElement('input');
+    recipeInput.type = 'hidden';
+    recipeInput.name = 'recipe_id';
+    recipeInput.value = recipeId;
+    form.appendChild(recipeInput);
+
+    var dateInput = document.createElement('input');
+    dateInput.type = 'hidden';
+    dateInput.name = 'date';
+    dateInput.value = formattedDate;
+    form.appendChild(dateInput);
+
+    var mealTypeInput = document.createElement('input');
+    mealTypeInput.type = 'hidden';
+    mealTypeInput.name = 'meal_type';
+    mealTypeInput.value = mealType;
+    form.appendChild(mealTypeInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
 {% endblock %}
