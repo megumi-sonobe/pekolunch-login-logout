@@ -79,10 +79,19 @@ class EditMealPlanView(LoginRequiredMixin, View):
         formatted_meal_plans = [self.format_plan(meal_plan_dict.get(date), date) for date in date_list]
         formatted_date_range = self.format_date_range(start_date, end_date)
 
+        previous_week_start = start_date - datetime.timedelta(days=7)
+        previous_week_end = end_date - datetime.timedelta(days=7)
+        next_week_start = start_date + datetime.timedelta(days=7)
+        next_week_end = end_date + datetime.timedelta(days=7)
+
         context = {
             'meal_plans': formatted_meal_plans,
             'date_range': formatted_date_range,
-            'view_mode': view_mode
+            'view_mode': view_mode,
+            'previous_week_start': previous_week_start,
+            'previous_week_end': previous_week_end,
+            'next_week_start': next_week_start,
+            'next_week_end': next_week_end,
         }
         return render(request, 'meal_planner/edit_meal_plan.html', context)
 

@@ -6,11 +6,16 @@
 
 {% block content %}
 <h2>献立編集</h2>
-{% if view_mode == 'weekly' %}
+
+<div class="navigation-container">
+    <a href="{% url 'meal_planner:edit_meal_plan' previous_week_start previous_week_end %}?view_mode=weekly" class="btn btn-secondary">
+        <i class="fas fa-chevron-left"></i> 前の週
+    </a>
     <h3>{{ date_range }}の1週間分の献立</h3>
-{% else %}
-    <h3>{{ date_range }}の献立</h3>
-{% endif %}
+    <a href="{% url 'meal_planner:edit_meal_plan' next_week_start next_week_end %}?view_mode=weekly" class="btn btn-secondary">
+        次の週 <i class="fas fa-chevron-right"></i>
+    </a>
+</div>
 
 <div class="meal-plan-container">
     {% for plan in meal_plans %}
@@ -82,5 +87,4 @@
         </div>
     {% endfor %}
 </div>
-
 {% endblock %}
