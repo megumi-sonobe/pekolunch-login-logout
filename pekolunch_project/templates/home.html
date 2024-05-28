@@ -15,8 +15,6 @@
         <p>連続して7日間まで選択可能です。</p>
     </div>
 
-
-
     <div class="row">
         <div class="col-md-12">
             <div id='calendar'></div>
@@ -27,7 +25,7 @@
         <div class="col-md-12 mt-3">
             <div id="legend">
                 <ul class="list-inline">
-                    <li class="list-inline-item"><span class="legend-color" style="background-color: #ffb7c5;"></span> すでに献立がある日</li>
+                    <li class="list-inline-item"><i class="fas fa-utensils"></i> すでに献立がある日</li>
                     <li class="list-inline-item"><span class="legend-color" style="background-color: #ffffcc;"></span> 今日</li>
                     <li class="list-inline-item"><span class="legend-color" style="background-color: #add8e6;"></span> 選択中の日</li>
                 </ul>
@@ -56,6 +54,16 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
+
+        function adjustIconSize() {
+            const calendarWidth = calendarEl.clientWidth;
+            const fontSize = Math.max(1, calendarWidth / 20) + 'px';  // カレンダーの幅に基づいてアイコンサイズを設定
+
+            document.querySelectorAll('.fc-event .fas').forEach(icon => {
+                icon.style.fontSize = fontSize;
+            });
+        }
+
         if (calendarEl) {
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -74,12 +82,8 @@
                     return selectRange > 0 && selectRange <= maxSelectableDays * 24 * 60 * 60 * 1000;
                 },
                 select: function(info) {
-                    // 選択された日時をAsia/Tokyoタイムゾーンに変換
                     const startDate = moment(info.start).tz('Asia/Tokyo').toDate();
                     const endDate = moment(info.end).tz('Asia/Tokyo').subtract(1, 'day').toDate(); // 終了日を1日引く
-
-                    console.log("Start Date (Asia/Tokyo):", startDate); // デバッグ用
-                    console.log("End Date (Asia/Tokyo):", endDate); // デバッグ用
 
                     const dateRangeString = formatDateRange(startDate, endDate);
                     document.getElementById('selectedDateDisplay').textContent = "献立を作成する日：" + dateRangeString;
@@ -87,14 +91,12 @@
                     document.getElementById('startDate').value = startDate.toISOString().split('T')[0]; // 日付形式で設定
                     document.getElementById('endDate').value = endDate.toISOString().split('T')[0]; // 日付形式で設定
 
-                    // 既存の選択イベントを削除
                     calendar.getEvents().forEach(event => {
                         if (event.extendedProps.selectEvent) {
                             event.remove();
                         }
                     });
 
-                    // 選択された日付にクラスを追加する
                     const selectedDays = [];
                     let currentDay = startDate;
                     while (currentDay <= endDate) {
@@ -113,11 +115,30 @@
                         });
                     });
                 },
+                eventContent: function(info) {
+                    return {
+                        html: '<i class="fas ' + info.event.extendedProps.icon + '" title="クリックして1週間の献立を見る"></i>'  // ツールチップを追加
+                    };
+                },
+                eventDidMount: function(info) {
+                    info.el.style.backgroundColor = 'transparent';
+                    adjustIconSize();  // アイコンサイズを調整
+                },
+                eventClick: function(info) {
+                    const date = info.event.start;
+                    const oneWeekLater = new Date(date);
+                    oneWeekLater.setDate(oneWeekLater.getDate() + 6);
+
+                    const weeklyMealPlanUrl = `{% url 'meal_planner:edit_meal_plan' 'REPLACE_START_DATE' 'REPLACE_END_DATE' %}`
+                        .replace('REPLACE_START_DATE', date.toISOString().split('T')[0])
+                        .replace('REPLACE_END_DATE', oneWeekLater.toISOString().split('T')[0]);
+
+                    window.location.href = weeklyMealPlanUrl;
+                },
                 dayMaxEvents: true,
                 selectOverlap: false,
             });
 
-            // viewから献立の日付を取得してカレンダーに表示する
             fetch("{% url 'meal_planner:meal_plan_dates' %}")
                 .then(response => response.json())
                 .then(dates => {
@@ -126,13 +147,18 @@
                             start: date,
                             allDay: true,
                             display: 'background',
-                            backgroundColor: '#ffb7c5' // 献立作成済みの日付の背景色
+                            extendedProps: {
+                                icon: 'fa-utensils'  // アイコンのクラス
+                            }
                         });
                     });
                 })
                 .catch(error => console.error('Error fetching meal plan dates:', error));
 
             calendar.render();
+
+            // カレンダーのリサイズに対応する
+            window.addEventListener('resize', adjustIconSize);
         }
     });
 

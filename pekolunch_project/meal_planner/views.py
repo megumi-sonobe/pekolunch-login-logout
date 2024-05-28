@@ -222,3 +222,20 @@ def select_recipe(request):
     end_date = (meal_date + datetime.timedelta(days=6 - meal_date.weekday())).strftime('%Y-%m-%d')
 
     return redirect('meal_planner:edit_meal_plan', start_date=start_date, end_date=end_date)
+
+
+@login_required
+def meal_plan_events(request):
+    user = request.user
+    meal_plans = MealPlan.objects.filter(user=user)
+    events = []
+
+    for plan in meal_plans:
+        events.append({
+            'title': '献立あり',
+            'start': plan.meal_date.isoformat(),
+            'icon': 'fa-utensils',  # アイコンのクラスを指定
+            'allDay': True
+        })
+
+    return JsonResponse(events, safe=False)

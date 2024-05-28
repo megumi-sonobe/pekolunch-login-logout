@@ -73,6 +73,22 @@ calendar {
     max-height: 200px; /* カレンダーの最大高さを設定 */
 }
 
+/* 献立がある日にアイコン */
+.fc-event .fas {
+    color: #494848; /* 元の色を黒に設定 */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: font-size 0.2s, color 0.2s; /* サイズと色変更時のアニメーション */
+    cursor: pointer; /* カーソルをポインターに変更 */
+}
+
+.fc-event .fas:hover {
+    color: #FF0000; /* ホバー時の色を赤に変更 */
+}
+
+
 #create-meal-plan-btn-container{
     text-align: center;
 }
