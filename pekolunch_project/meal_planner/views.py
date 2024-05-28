@@ -173,7 +173,12 @@ class MealPlannerRecipeListView(LoginRequiredMixin, ListView):
             print(f"Current page: {page_obj.number}")
             print(f"Total pages: {page_obj.paginator.num_pages}")
         return context
-    
+
+def update_recipe(request):
+    # レシピの更新処理
+    # ...
+    return redirect(reverse('meal_planner:weekly_meal_plan', kwargs={'date': request.GET.get('date')}))
+
 @login_required
 @require_POST
 def select_recipe(request):
@@ -203,7 +208,8 @@ def select_recipe(request):
     except Recipe.DoesNotExist:
         messages.error(request, "指定されたレシピが存在しません。")
 
-    start_date = meal_date.strftime('%Y-%m-%d')
-    end_date = meal_date.strftime('%Y-%m-%d')
-    
+    # 更新後に週間献立ページにリダイレクト
+    start_date = (meal_date - datetime.timedelta(days=meal_date.weekday())).strftime('%Y-%m-%d')
+    end_date = (meal_date + datetime.timedelta(days=6 - meal_date.weekday())).strftime('%Y-%m-%d')
+
     return redirect('meal_planner:edit_meal_plan', start_date=start_date, end_date=end_date)
