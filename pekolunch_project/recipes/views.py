@@ -231,12 +231,12 @@ class LoadFoodCategoriesView(View):
             return JsonResponse({'food_categories': []})
 
 
-class RecipeListView(LoginRequiredMixin,ListView):
+class RecipeListView(LoginRequiredMixin, ListView):
     model = Recipe
     template_name = 'recipe/recipe_list.html'
     context_object_name = 'recipes'
-    paginate_by = 10 #1ページあたりのアイテム数
-    
+    paginate_by = 10  # 1ページあたりのアイテム数
+
     def get_queryset(self):
         user = self.request.user
         # shareフィールドが1であるか、現在のユーザーが作成したレシピを表示
@@ -248,7 +248,8 @@ class RecipeListView(LoginRequiredMixin,ListView):
         if page_obj:
             print(f"Current page: {page_obj.number}")
             print(f"Total pages: {page_obj.paginator.num_pages}")
-            return context
+        return context
+
 
 def search(request):
     query = request.GET.get('q')

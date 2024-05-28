@@ -10,6 +10,8 @@ from .models import Recipe, MealPlan
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.views.generic import ListView
 
 class CreateMealPlansView(LoginRequiredMixin, View):
     def post(self, request):
@@ -18,8 +20,6 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         if not start_date or not end_date:
             messages.error(request, "日付が選択されていません。")
             return redirect('accounts:home')
-        
-        print(f"Received start_date: {start_date}, end_date: {end_date}")
 
         start_date = datetime.date.fromisoformat(start_date)
         end_date = datetime.date.fromisoformat(end_date)
@@ -39,7 +39,6 @@ class CreateMealPlansView(LoginRequiredMixin, View):
     
     def save_meal_plan(self, date, user):
         if MealPlan.objects.filter(user=user, meal_date=date).exists():
-            print(f"Meal Plan for {date} already exists")
             return
         
         staple_recipes = Recipe.objects.filter(
@@ -57,14 +56,13 @@ class CreateMealPlansView(LoginRequiredMixin, View):
             main_recipe = random.choice(main_recipes)
             side_recipe = random.choice(side_recipes)
             
-            meal_plan = MealPlan.objects.create(
+            MealPlan.objects.create(
                 user=user,
                 staple_recipe=staple_recipe,
                 main_recipe=main_recipe,
                 side_recipe=side_recipe,
                 meal_date=date
             )
-            print(f"Saved Meal Plan: {meal_plan}")
 
 class EditMealPlanView(LoginRequiredMixin, View):
     def get(self, request, start_date, end_date):
@@ -96,7 +94,7 @@ class EditMealPlanView(LoginRequiredMixin, View):
 
         if plan:
             return {
-                'date': self.format_date_with_weekday(plan.meal_date),
+                'date': date,  # 日付を直接渡す
                 'staple_recipe': plan.staple_recipe.recipe_name if plan.staple_recipe else '献立なし',
                 'main_recipe': plan.main_recipe.recipe_name if plan.main_recipe else '献立なし',
                 'side_recipe': plan.side_recipe.recipe_name if plan.side_recipe else '献立なし',
@@ -112,7 +110,7 @@ class EditMealPlanView(LoginRequiredMixin, View):
             }
         else:
             return {
-                'date': self.format_date_with_weekday(date),
+                'date': date,  # 日付を直接渡す
                 'staple_recipe': '献立なし',
                 'main_recipe': '献立なし',
                 'side_recipe': '献立なし',
@@ -134,10 +132,7 @@ class EditMealPlanView(LoginRequiredMixin, View):
         if start_date == end_date:
             return start_formatted
         return f"{start_formatted} 〜 {end_formatted}"
-    
-    def format_date_with_weekday(self, date):
-        weekdays = ['月', '火', '水', '木', '金', '土', '日']
-        return f"{date.month}/{date.day}（{weekdays[date.weekday()]}）"
+
 
 class MealPlanDatesView(LoginRequiredMixin, View):
     def get(self, request):
@@ -150,16 +145,47 @@ class WeeklyMealPlanView(LoginRequiredMixin, View):
         start_date = datetime.date.today()
         end_date = start_date + datetime.timedelta(days=6)  # 今日から1週間の範囲
         return redirect(f'/meal_planner/edit_meal_plan/{start_date}/{end_date}/?view_mode=weekly')
+
+class MealPlannerRecipeListView(LoginRequiredMixin, ListView):
+    model = Recipe
+    template_name = 'meal_planner/recipe_list.html'
+    context_object_name = 'recipes'
+    paginate_by = 10  # 1ページあたりのアイテム数
+
+    def get_queryset(self):
+        meal_type = self.request.GET.get('meal_type')
+        if meal_type == 'staple':
+            return Recipe.objects.filter(menu_category=1).order_by('-average_evaluation')
+        elif meal_type == 'main':
+            return Recipe.objects.filter(menu_category=2).order_by('-average_evaluation')
+        elif meal_type == 'side':
+            return Recipe.objects.filter(menu_category=3).order_by('-average_evaluation')
+        else:
+            return Recipe.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['date'] = self.request.GET.get('date')
+        context['meal_type'] = self.request.GET.get('meal_type')
+        context['from_edit_meal_plan'] = self.request.GET.get('from_edit_meal_plan')
+        page_obj = context.get('page_obj')
+        if page_obj:
+            print(f"Current page: {page_obj.number}")
+            print(f"Total pages: {page_obj.paginator.num_pages}")
+        return context
     
 @login_required
 @require_POST
 def select_recipe(request):
     recipe_id = request.POST.get('recipe_id')
-    date = request.POST.get('date')
+    date_str = request.POST.get('date')
     meal_type = request.POST.get('meal_type')
 
-    # dateを文字列からdateオブジェクトに変換
-    meal_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    try:
+        meal_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, "無効な日付形式です。")
+        return redirect('meal_planner:edit_meal_plan', start_date=date_str, end_date=date_str)
 
     try:
         recipe = Recipe.objects.get(id=recipe_id)
@@ -173,8 +199,11 @@ def select_recipe(request):
             meal_plan.side_recipe = recipe
 
         meal_plan.save()
+        messages.success(request, "レシピが更新されました。")
     except Recipe.DoesNotExist:
-        # レシピが存在しない場合の処理
-        pass
+        messages.error(request, "指定されたレシピが存在しません。")
 
-    return redirect('meal_planner:edit_meal_plan', start_date=date, end_date=date)
+    start_date = meal_date.strftime('%Y-%m-%d')
+    end_date = meal_date.strftime('%Y-%m-%d')
+    
+    return redirect('meal_planner:edit_meal_plan', start_date=start_date, end_date=end_date)
