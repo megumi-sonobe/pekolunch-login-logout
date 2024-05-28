@@ -32,6 +32,15 @@
         <div>
             {{ form.food_categories.label_tag }}
             <input type="text" id="search-bar" placeholder="食材を検索">
+            <div id="selected-food-categories-container">
+                <ul id="selected-food-categories-list">
+                    {% for checkbox in form.food_categories %}
+                        {% if checkbox.is_checked %}
+                            <li>{{ checkbox.choice_label }} <button type="button" class="remove-btn" data-value="{{ checkbox.tag.attrs.value }}">×</button></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
             <div id="food-categories-container">
                 {% for checkbox in form.food_categories %}
                     <div>
@@ -196,6 +205,43 @@
             const foodCategoriesContainer = document.getElementById('food-categories-container');
             const checkboxes = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]');
             const searchBar = document.getElementById('search-bar');
+            const selectedFoodCategoriesContainer = document.getElementById('selected-food-categories-list');
+
+            function updateSelectedCategories() {
+                const selectedCategories = [];
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedCategories.push({
+                            value: checkbox.value,
+                            label: checkbox.parentElement.textContent.trim()
+                        });
+                    }
+                });
+
+                selectedFoodCategoriesContainer.innerHTML = '';
+
+                selectedCategories.forEach(category => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `${category.label} <button type="button" class="remove-btn" data-value="${category.value}">×</button>`;
+                    selectedFoodCategoriesContainer.appendChild(listItem);
+                });
+
+                // クリックイベントをリスナーに追加
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        removeCategory(this.getAttribute('data-value'));
+                    });
+                });
+            }
+
+            function removeCategory(value) {
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.value === value) {
+                        checkbox.checked = false;
+                    }
+                });
+                updateSelectedCategories();
+            }
 
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
@@ -208,13 +254,13 @@
                             box.parentElement.style.color = isDisabled ? 'lightgray' : 'initial';
                         }
                     });
-
                     if (this.checked) {
                         searchBar.value = '';
                         checkboxes.forEach(box => {
                             box.parentElement.style.display = 'block';
                         });
                     }
+                    updateSelectedCategories();
                 });
             });
 
@@ -229,6 +275,8 @@
                     }
                 });
             });
+
+            updateSelectedCategories();
         });
     </script>
 {% endblock %}
