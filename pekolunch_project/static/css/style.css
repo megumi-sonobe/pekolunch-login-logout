@@ -409,3 +409,35 @@ img {
     height: auto;
     margin-bottom: 10px;
 }
+
+/* 選択した食材カテゴリのスタイル */
+#selected-food-categories-container {
+    margin-top: 20px;
+}
+
+#selected-food-categories-container h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+#selected-food-categories-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#selected-food-categories-list li {
+    margin-bottom: 20px;
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    display: inline-block;
+    margin-right: 10px; /* 食材の間に右側のマージンを追加 */
+}
+
+#selected-food-categories-list li button.remove-btn {
+    margin-left: 5px;
+    background-color: transparent;
+    border: none;
+    color: #ff6347; /* 削除ボタンの色は赤 */
+    cursor: pointer;
+}

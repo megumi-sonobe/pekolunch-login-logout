@@ -32,8 +32,17 @@
         <div>
             {{ form.food_categories.label_tag }}
             <input type="text" id="search-bar" placeholder="食材を検索">
+            <div id="selected-food-categories-container">
+                <ul id="selected-food-categories-list"></ul>
+            </div>
             <div id="food-categories-container">
-                {{ form.food_categories }}
+                {% for checkbox in form.food_categories %}
+                    <div>
+                        <label>
+                            {{ checkbox.tag }} {{ checkbox.choice_label }}
+                        </label>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -201,11 +210,47 @@
             const foodCategoriesContainer = document.getElementById('food-categories-container');
             const checkboxes = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]');
             const searchBar = document.getElementById('search-bar');
+            const selectedFoodCategoriesContainer = document.getElementById('selected-food-categories-list');
+
+            function updateSelectedCategories() {
+                const selectedCategories = [];
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedCategories.push({
+                            value: checkbox.value,
+                            label: checkbox.parentElement.textContent.trim()
+                        });
+                    }
+                });
+
+                selectedFoodCategoriesContainer.innerHTML = '';
+
+                selectedCategories.forEach(category => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `${category.label} <button type="button" class="remove-btn" data-value="${category.value}">×</button>`;
+                    selectedFoodCategoriesContainer.appendChild(listItem);
+                });
+
+                // クリックイベントをリスナーに追加
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        removeCategory(this.getAttribute('data-value'));
+                    });
+                });
+            }
+
+            function removeCategory(value) {
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.value === value) {
+                        checkbox.checked = false;
+                    }
+                });
+                updateSelectedCategories();
+            }
 
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const selectedCount = foodCategoriesContainer.querySelectorAll('input[type="checkbox"]:checked').length;
-
                     const isDisabled = selectedCount >= 5;
 
                     checkboxes.forEach(box => {
@@ -214,17 +259,16 @@
                             box.parentElement.style.color = isDisabled ? 'lightgray' : 'initial';
                         }
                     });
-                    // チェックされたときに検索バーをリセットする
                     if (this.checked) {
                         searchBar.value = '';
                         checkboxes.forEach(box => {
-                            box.parentElement.style.display = 'block'; // 全てのチェックボックスを表示
+                            box.parentElement.style.display = 'block';
                         });
                     }
+                    updateSelectedCategories();
                 });
             });
-            
-            // 食材検索機能の追加
+
             searchBar.addEventListener('input', function() {
                 const searchValue = searchBar.value.toLowerCase();
                 checkboxes.forEach(checkbox => {
@@ -236,6 +280,8 @@
                     }
                 });
             });
+
+            updateSelectedCategories();
         });
     </script>
 {% endblock %}

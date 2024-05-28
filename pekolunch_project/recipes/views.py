@@ -48,8 +48,10 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
 
         for name, unit in zip(ingredient_names, quantity_units):
             if name:
-                Ingredient.objects.create(recipe=self.object, ingredient_name=name, quantity_unit=unit)
-
+                # 材料の量を1人分に調整して保存
+                adjusted_quantity = adjust_quantity(unit, 1 / self.object.serving)
+                Ingredient.objects.create(recipe=self.object, ingredient_name=name, quantity_unit=adjusted_quantity)
+        
         descriptions = self.request.POST.getlist('description', [])
         for description in descriptions:
             if description:
@@ -328,16 +330,17 @@ def adjust_quantity(quantity, ratio):
         original_quantity_str = match.group(0)
         try:
             if '/' in original_quantity_str:
-                original_quantity = float(Fraction(original_quantity_str))
+                original_quantity = Fraction(original_quantity_str)
             else:
                 original_quantity = float(original_quantity_str)
             adjusted_quantity = original_quantity * ratio
-            rounded_quantity = round(adjusted_quantity * 2) / 2  # 0.5単位で四捨五入
-            return f'{rounded_quantity:.1f}'.rstrip('0').rstrip('.')
+            rounded_quantity = round(adjusted_quantity, 1)  # 1桁まで丸める
+            return f'{rounded_quantity:.1f}'
         except ValueError:
             return original_quantity_str
 
     pattern = r'(\d+/\d+|\d+\.\d+|\d+)'
     adjusted_quantity = re.sub(pattern, replace_quantity, quantity)
     return adjusted_quantity
+
 
