@@ -42,7 +42,6 @@
                         <a href="{% url 'meal_planner:recipe_list' %}?date={{ plan.date|date:'Y-m-d' }}&meal_type=staple&from_edit_meal_plan=True" class="btn btn-primary">料理追加</a>
                     {% endif %}
                 </div>
-                <!-- 他のmeal-itemも同様に設定 -->
                 <div class="meal-item">
                     <h5>主菜</h5>
                     {% if plan.main_recipe != '献立なし' %}
@@ -81,6 +80,26 @@
                     {% else %}
                         <p>献立なし</p>
                         <a href="{% url 'meal_planner:recipe_list' %}?date={{ plan.date|date:'Y-m-d' }}&meal_type=side&from_edit_meal_plan=True" class="btn btn-primary">料理追加</a>
+                    {% endif %}
+                </div>
+                <div class="meal-item">
+                    <h5>汁物</h5>
+                    {% if plan.soup_recipe != '献立なし' %}
+                        {% if plan.soup_recipe_image %}
+                            <img src="{{ plan.soup_recipe_image }}" alt="{{ plan.soup_recipe }}">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                        {% endif %}
+                        {% if plan.soup_recipe_id %}
+                            <p><a href="{% url 'recipes:recipe_detail' plan.soup_recipe_id %}">{{ plan.soup_recipe }}</a></p>
+                        {% else %}
+                            <p>{{ plan.soup_recipe }}</p>
+                        {% endif %}
+                        <p>平均評価：{{ plan.soup_recipe_evaluation|default:"評価なし" }}</p>
+                        <a href="{% url 'meal_planner:recipe_list' %}?date={{ plan.date|date:'Y-m-d' }}&meal_type=soup&from_edit_meal_plan=True" class="btn btn-primary">料理変更</a>
+                    {% else %}
+                        <p>献立なし</p>
+                        <a href="{% url 'meal_planner:recipe_list' %}?date={{ plan.date|date:'Y-m-d' }}&meal_type=soup&from_edit_meal_plan=True" class="btn btn-primary">料理追加</a>
                     {% endif %}
                 </div>
             </div>

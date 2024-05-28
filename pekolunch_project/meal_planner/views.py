@@ -103,35 +103,43 @@ class EditMealPlanView(LoginRequiredMixin, View):
 
         if plan:
             return {
-                'date': date,  # 日付を直接渡す
+                'date': date,
                 'staple_recipe': plan.staple_recipe.recipe_name if plan.staple_recipe else '献立なし',
                 'main_recipe': plan.main_recipe.recipe_name if plan.main_recipe else '献立なし',
                 'side_recipe': plan.side_recipe.recipe_name if plan.side_recipe else '献立なし',
+                'soup_recipe': plan.soup_recipe.recipe_name if plan.soup_recipe else '献立なし',  # 新しい汁物のフィールド
                 'staple_recipe_id': plan.staple_recipe.id if plan.staple_recipe else None,
                 'main_recipe_id': plan.main_recipe.id if plan.main_recipe else None,
                 'side_recipe_id': plan.side_recipe.id if plan.side_recipe else None,
+                'soup_recipe_id': plan.soup_recipe.id if plan.soup_recipe else None,  # 新しい汁物のフィールド
                 'staple_recipe_image': plan.staple_recipe.image_url.url if plan.staple_recipe and plan.staple_recipe.image_url else None,
                 'main_recipe_image': plan.main_recipe.image_url.url if plan.main_recipe and plan.main_recipe.image_url else None,
                 'side_recipe_image': plan.side_recipe.image_url.url if plan.side_recipe and plan.side_recipe.image_url else None,
+                'soup_recipe_image': plan.soup_recipe.image_url.url if plan.soup_recipe and plan.soup_recipe.image_url else None,  # 新しい汁物のフィールド
                 'staple_recipe_evaluation': get_evaluation(plan.staple_recipe),
                 'main_recipe_evaluation': get_evaluation(plan.main_recipe),
-                'side_recipe_evaluation': get_evaluation(plan.side_recipe)
+                'side_recipe_evaluation': get_evaluation(plan.side_recipe),
+                'soup_recipe_evaluation': get_evaluation(plan.soup_recipe)  # 新しい汁物のフィールド
             }
         else:
             return {
-                'date': date,  # 日付を直接渡す
+                'date': date,
                 'staple_recipe': '献立なし',
                 'main_recipe': '献立なし',
                 'side_recipe': '献立なし',
+                'soup_recipe': '献立なし',  # 新しい汁物のフィールド
                 'staple_recipe_id': None,
                 'main_recipe_id': None,
                 'side_recipe_id': None,
+                'soup_recipe_id': None,  # 新しい汁物のフィールド
                 'staple_recipe_image': None,
                 'main_recipe_image': None,
                 'side_recipe_image': None,
+                'soup_recipe_image': None,  # 新しい汁物のフィールド
                 'staple_recipe_evaluation': None,
                 'main_recipe_evaluation': None,
-                'side_recipe_evaluation': None
+                'side_recipe_evaluation': None,
+                'soup_recipe_evaluation': None  # 新しい汁物のフィールド
             }
 
     def format_date_range(self, start_date, end_date):
@@ -211,6 +219,8 @@ def select_recipe(request):
             meal_plan.main_recipe = recipe
         elif meal_type == 'side':
             meal_plan.side_recipe = recipe
+        elif meal_type == 'soup':  # 新しい汁物のフィールド
+            meal_plan.soup_recipe = recipe
 
         meal_plan.save()
         messages.success(request, "レシピが更新されました。")
