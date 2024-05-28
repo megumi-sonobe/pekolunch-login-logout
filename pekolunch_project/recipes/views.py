@@ -1,28 +1,21 @@
 from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
-from django.views.generic import CreateView, UpdateView,DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView
 from django.urls import reverse_lazy
 from .forms import RecipeForm, ProcessForm, IngredientForm
 from django.views import View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.views.decorators.csrf import csrf_exempt
-from .models import Recipe, UserEvaluation, Process, Ingredient,FoodCategory
+from .models import Recipe, UserEvaluation, Process, Ingredient, FoodCategory
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-import csv
-import os
-import json
-import re
-from django.conf import settings
-from django.views.generic.detail import DetailView
-from django.views.generic.list import ListView
-from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
-from accounts.models import Users
-from django.http import Http404,HttpResponseRedirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import models
 from django.contrib.messages.views import SuccessMessageMixin
 from fractions import Fraction
+import re
+import json
 
 User = get_user_model()
 
@@ -30,11 +23,10 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
     form_class = RecipeForm 
     template_name = 'recipes/my_recipe.html'
-   
-    
+
     def form_valid(self, form):
         try:
-            self.object = form.save(commit=False)# commit=Falseで保存を遅延
+            self.object = form.save(commit=False)  # commit=Falseで保存を遅延
             self.object.user = self.request.user
             self.object.save()  # ここでオブジェクトをデータベースに保存してIDを取得
             self.save_related_instances()
@@ -81,13 +73,13 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
         return kwargs
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'process_form' not in context:
             context['process_form'] = ProcessForm(None)
+        context['food_categories'] = FoodCategory.objects.all()  # フードカテゴリーをデータベースから取得
         return context
 
 class RecipeUpdateView(LoginRequiredMixin, UpdateView):
@@ -97,7 +89,6 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_success_url(self):
         return reverse_lazy('recipes:recipe_detail', kwargs={'pk': self.object.pk})
-    
     
     def get_initial(self):
         initial = super().get_initial()
@@ -110,7 +101,6 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['instance'] = self.get_object()
-        kwargs['csv_file_path'] = 'meal_planner/data/food_categories.csv'
         return kwargs
     
     def get_context_data(self, **kwargs):
@@ -119,6 +109,7 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
         user = self.request.user
         user_evaluation = UserEvaluation.objects.filter(user=user, recipe=recipe).first()
         context['user_evaluation'] = user_evaluation
+        context['food_categories'] = FoodCategory.objects.all()  # フードカテゴリーをデータベースから取得
         return context
     
     def form_valid(self, form):
@@ -166,6 +157,7 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
             )
             self.object.update_average_rating()  # 平均評価を更新
             
+                        
 class RecipeDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Recipe
     template_name = 'recipes/recipe_delete.html'
@@ -181,12 +173,12 @@ class RecipeDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
         success_url = self.get_success_url()
         self.object.delete()
         return HttpResponseRedirect(success_url)
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['recipe'] = self.object
         return context
-    
+
 class SaveRatingView(LoginRequiredMixin, View):
     @csrf_exempt
     def post(self, request, *args, **kwargs):
@@ -206,7 +198,6 @@ class SaveRatingView(LoginRequiredMixin, View):
                         recipe=recipe,
                         defaults={'evaluation': evaluation}
                     )
-                    
                     return JsonResponse({'success': True})
                 except Recipe.DoesNotExist:
                     return JsonResponse({'success': False, 'error': 'Recipe not found'})
@@ -214,22 +205,6 @@ class SaveRatingView(LoginRequiredMixin, View):
                 return JsonResponse({'success': False, 'error': 'Invalid request'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-
-class LoadFoodCategoriesView(View):
-    def get(self, request):
-        csv_file_path = os.path.join(settings.BASE_DIR, 'meal_planner/data/food_categories.csv')  # CSVファイルのパスを指定
-
-        try:
-            with open(csv_file_path, 'r', encoding='utf-8') as file:
-                reader = csv.reader(file)
-                food_categories = [row[0] for row in reader if row]  # 空の行を除外
-                
-            return JsonResponse({'food_categories': food_categories})
-        
-        except Exception:
-            # エラーが発生した場合は空のリストを返す
-            return JsonResponse({'food_categories': []})
-
 
 class RecipeListView(LoginRequiredMixin, ListView):
     model = Recipe
@@ -249,7 +224,6 @@ class RecipeListView(LoginRequiredMixin, ListView):
             print(f"Current page: {page_obj.number}")
             print(f"Total pages: {page_obj.paginator.num_pages}")
         return context
-
 
 def search(request):
     query = request.GET.get('q')
@@ -286,15 +260,11 @@ def search(request):
     except EmptyPage:
         recipes = paginator.page(paginator.num_pages)
         
-        
     context = {
             'recipes':recipes,
             'page_obj':recipes,
     }
     return render(request,'recipes/recipe_list.html',context)
-        
-    
-    
 
 class RecipeDetailView(LoginRequiredMixin, DetailView):
     model = Recipe
@@ -353,7 +323,6 @@ class RecipeDetailView(LoginRequiredMixin, DetailView):
 
         return redirect('recipes:recipe_detail', pk=recipe.pk)
 
-
 def adjust_quantity(quantity, ratio):
     def replace_quantity(match):
         original_quantity_str = match.group(0)
@@ -371,3 +340,4 @@ def adjust_quantity(quantity, ratio):
     pattern = r'(\d+/\d+|\d+\.\d+|\d+)'
     adjusted_quantity = re.sub(pattern, replace_quantity, quantity)
     return adjusted_quantity
+

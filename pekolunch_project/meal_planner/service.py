@@ -32,9 +32,8 @@ def load_food_categories_from_csv(file_path):
             
         return rules
     
-csv_file_path = 'meal_planner/data/food_categories.csv'
 
-RULES = load_food_categories_from_csv(csv_file_path)
+
 
     
 def apply_rules(recipes,today,user):
