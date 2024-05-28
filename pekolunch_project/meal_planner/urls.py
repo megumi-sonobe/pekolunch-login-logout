@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateMealPlansView, EditMealPlanView, MealPlanDatesView, WeeklyMealPlanView, select_recipe, MealPlannerRecipeListView,meal_plan_events
+from .views import CreateMealPlansView, EditMealPlanView, MealPlanDatesView, WeeklyMealPlanView, select_recipe, MealPlannerRecipeListView,meal_plan_events,remove_recipe
 
 app_name = 'meal_planner'
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('select_recipe/', select_recipe, name='select_recipe'),
     path('recipe_list/', MealPlannerRecipeListView.as_view(), name='recipe_list'),
     path('events/', meal_plan_events, name='meal_plan_events'),
+    path('remove_recipe/', remove_recipe, name='remove_recipe'),
 ]

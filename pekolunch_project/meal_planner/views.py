@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.generic import ListView
+from django.shortcuts import get_object_or_404
 
 class CreateMealPlansView(LoginRequiredMixin, View):
     def post(self, request):
@@ -177,6 +178,8 @@ class MealPlannerRecipeListView(LoginRequiredMixin, ListView):
             return Recipe.objects.filter(menu_category=2).order_by('-average_evaluation')
         elif meal_type == 'side':
             return Recipe.objects.filter(menu_category=3).order_by('-average_evaluation')
+        elif meal_type == 'soup': 
+            return Recipe.objects.filter(menu_category=4).order_by('-average_evaluation')
         else:
             return Recipe.objects.none()
 
@@ -223,7 +226,7 @@ def select_recipe(request):
             meal_plan.soup_recipe = recipe
 
         meal_plan.save()
-        messages.success(request, "レシピが更新されました。")
+        messages.success(request, "献立が更新されました。")
     except Recipe.DoesNotExist:
         messages.error(request, "指定されたレシピが存在しません。")
 
@@ -233,6 +236,44 @@ def select_recipe(request):
 
     return redirect('meal_planner:edit_meal_plan', start_date=start_date, end_date=end_date)
 
+@login_required
+def remove_recipe(request):
+    if request.method == 'POST':
+        meal_date_str = request.POST.get('meal_date')
+        meal_type = request.POST.get('meal_type')
+
+        if not meal_date_str or not meal_type:
+            messages.error(request, "無効なリクエストです。")
+            return redirect('meal_planner:weekly_meal_plan')
+
+        try:
+            meal_date = datetime.datetime.strptime(meal_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "無効な日付形式です。")
+            return redirect('meal_planner:weekly_meal_plan')
+
+        try:
+            meal_plan = MealPlan.objects.get(user=request.user, meal_date=meal_date)
+            if meal_type == 'staple':
+                meal_plan.staple_recipe = None
+            elif meal_type == 'main':
+                meal_plan.main_recipe = None
+            elif meal_type == 'side':
+                meal_plan.side_recipe = None
+            elif meal_type == 'soup':
+                meal_plan.soup_recipe = None
+            meal_plan.save()
+            messages.success(request, "料理が削除されました。")
+        except MealPlan.DoesNotExist:
+            messages.error(request, "指定された献立が存在しません。")
+
+        start_date = (meal_date - datetime.timedelta(days=meal_date.weekday())).strftime('%Y-%m-%d')
+        end_date = (meal_date + datetime.timedelta(days=6 - meal_date.weekday())).strftime('%Y-%m-%d')
+
+        return redirect('meal_planner:edit_meal_plan', start_date=start_date, end_date=end_date)
+    else:
+        messages.error(request, "無効なリクエストです。")
+        return redirect('meal_planner:weekly_meal_plan')
 
 @login_required
 def meal_plan_events(request):

@@ -12,7 +12,6 @@
         {% if not recipes %}
             <p>該当するレシピは見つかりませんでした。</p>
             <p>もう一度検索してください。</p>
-            <a href="{% url 'recipes:recipe_list' %}">料理一覧に戻る</a>
         {% else %}
             <div class="recipe-grid">
                 {% for recipe in recipes %}

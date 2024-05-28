@@ -322,3 +322,90 @@ calendar {
     margin-right: 5px;
 }
 
+
+/* 週間献立の表示 */
+.meal-plan-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.meal-plan {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.meal-items {
+    display: flex;
+    gap: 20px;
+}
+
+.meal-item {
+    flex: 1;
+    text-align: center;
+}
+
+.meal-content {
+    text-align: center;
+}
+
+/* 料理名を目立たせる */
+.recipe-name {
+    font-size: 1.4rem; /* フォントサイズを大きくする */
+    font-weight: bold; /* 太字にする */
+    color: #333; /* 色を変更する（必要に応じて調整） */
+    margin-top: 10px; /* 上部にマージンを追加する */
+}
+
+/* 献立なし専用のスタイル */
+.no-recipe-text {
+    font-size: 1rem; /* フォントサイズを調整 */
+    font-weight: normal; /* フォントウェイトを通常に */
+    color: #666; /* 色を変更する（必要に応じて調整） */
+    text-align: center; /* 中央揃え */
+}
+
+/* ボタンコンテナのスタイル調整 */
+.button-container {
+    display: flex;
+    gap: 5px; /* ボタンの間隔を狭くする */
+    justify-content: center; /* ボタンを中央揃えにする */
+}
+
+.btn-outline-primary {
+    border-color: #5c85d6;
+    color: #5c85d6;
+}
+
+.btn-outline-primary:hover {
+    background-color: #5c85d6;
+    color: white;
+}
+
+.btn-outline-danger {
+    border-color: #d9534f;
+    color: #d9534f;
+}
+
+.btn-outline-danger:hover {
+    background-color: #d9534f;
+    color: white;
+}
+
+.no-recipe {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    border: 1px dashed #ddd;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
