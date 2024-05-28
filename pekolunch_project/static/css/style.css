@@ -351,11 +351,17 @@ calendar {
 }
 
 /* 料理名を目立たせる */
-.recipe-name {
+.recipe-name a {
     font-size: 1.4rem; /* フォントサイズを大きくする */
     font-weight: bold; /* 太字にする */
-    color: #333; /* 色を変更する（必要に応じて調整） */
+    text-decoration: underline; /* 下線を追加 */
+    color:#8FBC8F; /* リンクの文字色を変更 */
     margin-top: 10px; /* 上部にマージンを追加する */
+}
+
+.recipe-name a:hover {
+    color: #CD5C5C; /* ホバー時の文字色を変更 */
+    text-decoration: underline; /* ホバー時の下線 */
 }
 
 /* 献立なし専用のスタイル */
