@@ -42,28 +42,40 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         if MealPlan.objects.filter(user=user, meal_date=date).exists():
             return
         
-        staple_recipes = Recipe.objects.filter(
-            models.Q(menu_category=1) & (models.Q(share=1) | models.Q(user=user))
-        )
-        main_recipes = Recipe.objects.filter(
-            models.Q(menu_category=2) & (models.Q(share=1) | models.Q(user=user))
-        )
-        side_recipes = Recipe.objects.filter(
-            models.Q(menu_category=3) & (models.Q(share=1) | models.Q(user=user))
-        )
+        # ユーザーの調理時間制限を取得
+        max_cooking_time = user.cooking_time_min
 
-        if staple_recipes.exists() and main_recipes.exists() and side_recipes.exists():
-            staple_recipe = random.choice(staple_recipes)
-            main_recipe = random.choice(main_recipes)
-            side_recipe = random.choice(side_recipes)
-            
-            MealPlan.objects.create(
-                user=user,
-                staple_recipe=staple_recipe,
-                main_recipe=main_recipe,
-                side_recipe=side_recipe,
-                meal_date=date
-            )
+        staple_recipes = list(Recipe.objects.filter(
+            models.Q(menu_category=1) & (models.Q(share=1) | models.Q(user=user)) & models.Q(cooking_time_min__lte=max_cooking_time)
+        ))
+        main_recipes = list(Recipe.objects.filter(
+            models.Q(menu_category=2) & (models.Q(share=1) | models.Q(user=user)) & models.Q(cooking_time_min__lte=max_cooking_time)
+        ))
+        side_recipes = list(Recipe.objects.filter(
+            models.Q(menu_category=3) & (models.Q(share=1) | models.Q(user=user)) & models.Q(cooking_time_min__lte=max_cooking_time)
+        ))
+
+        if staple_recipes and main_recipes and side_recipes:
+            # 各カテゴリーのレシピをランダムに選択するが、調理法が重ならないようにする
+            random.shuffle(staple_recipes)
+            random.shuffle(main_recipes)
+            random.shuffle(side_recipes)
+        
+            for staple_recipe in staple_recipes:
+                for main_recipe in main_recipes:
+                    if main_recipe.cooking_method != staple_recipe.cooking_method:
+                        for side_recipe in side_recipes:
+                            if (side_recipe.cooking_method != staple_recipe.cooking_method and
+                                    side_recipe.cooking_method != main_recipe.cooking_method):
+                                # 調理法が重ならないレシピが見つかった場合に保存
+                                MealPlan.objects.create(
+                                    user=user,
+                                    staple_recipe=staple_recipe,
+                                    main_recipe=main_recipe,
+                                    side_recipe=side_recipe,
+                                    meal_date=date
+                                )
+                                return
 
 class EditMealPlanView(LoginRequiredMixin, View):
     def get(self, request, start_date, end_date):
