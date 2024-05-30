@@ -1,0 +1,27 @@
+# SQLite database files
+*.sqlite3
+
+# Django specific: ignore migration files and pycache
+**/migrations/*
+!**/migrations/__init__.py
+**/__pycache__/
+
+# Ignore environment variable files
+.env
+
+# Ignore IDE/editor specific files
+*.idea/
+*.vscode/
+*.log
+
+# Ignore compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore data folder
+data/
+
+# Ignore media folder
+media/
+
