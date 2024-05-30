@@ -25,3 +25,6 @@ data/
 # Ignore media folder
 media/
 
+# Ignore .gitignore backup file
+.gitignore.save
+
