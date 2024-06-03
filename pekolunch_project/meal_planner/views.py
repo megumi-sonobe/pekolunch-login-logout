@@ -6,13 +6,15 @@ from django.db import models
 from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
-from .models import Recipe, MealPlan
+from .models import MealPlan
+from recipes.models import Recipe, FoodCategory 
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.generic import ListView
 from django.shortcuts import get_object_or_404
+
 
 class CreateMealPlansView(LoginRequiredMixin, View):
     def post(self, request):
@@ -29,8 +31,16 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         days = (end_date - start_date).days + 1
         date_list = [start_date + datetime.timedelta(days=x) for x in range(days)]
 
+        no_recipes_found = False
+
         for date in date_list:
-            self.save_meal_plan(date, user)
+            if not self.save_meal_plan(date, user):
+                no_recipes_found = True
+
+        if no_recipes_found:
+            messages.error(request, "ルールに当てはまるレシピが見つかりませんでした。")
+        else:
+            messages.success(request, "食事プランが正常に作成されました。")
 
         url = reverse('meal_planner:edit_meal_plan', kwargs={'start_date': start_date, 'end_date': end_date})
         return redirect(f"{url}?view_mode=custom")
@@ -40,7 +50,7 @@ class CreateMealPlansView(LoginRequiredMixin, View):
     
     def save_meal_plan(self, date, user):
         if MealPlan.objects.filter(user=user, meal_date=date).exists():
-            return
+            return True
     
         max_cooking_time = user.cooking_time_min
 
@@ -74,18 +84,27 @@ class CreateMealPlansView(LoginRequiredMixin, View):
             )
         ).order_by('-user_rating', '-average_evaluation'))
 
+        recent_meal_plans = MealPlan.objects.filter(user=user, meal_date__gte=date - datetime.timedelta(days=14))
+
         if staple_recipes and side_recipes:
             random.shuffle(staple_recipes)
             random.shuffle(main_recipes)
             random.shuffle(side_recipes)
-        
+
             for staple_recipe in staple_recipes:
+                if staple_recipe.id != 144 and self.is_recently_used(recent_meal_plans, staple_recipe):
+                    continue
+
                 staple_categories = set(staple_recipe.food_categories.values_list('id', flat=True))
                 if staple_recipe.is_avoid_main_dish == 1:
                     for side_recipe in side_recipes:
+                        if side_recipe.id != 144 and self.is_recently_used(recent_meal_plans, side_recipe):
+                            continue
+
                         side_categories = set(side_recipe.food_categories.values_list('id', flat=True))
                         if (side_recipe.cooking_method != staple_recipe.cooking_method and
-                                staple_categories.isdisjoint(side_categories)):
+                                self.check_exclusion_rules(staple_categories, side_categories) and
+                                self.check_same_day_categories(date, user, staple_categories | side_categories)):
                             MealPlan.objects.create(
                                 user=user,
                                 staple_recipe=staple_recipe,
@@ -93,18 +112,25 @@ class CreateMealPlansView(LoginRequiredMixin, View):
                                 side_recipe=side_recipe,
                                 meal_date=date
                             )
-                            return
+                            return True
                 else:
                     for main_recipe in main_recipes:
+                        if main_recipe.id != 144 and self.is_recently_used(recent_meal_plans, main_recipe):
+                            continue
+
                         main_categories = set(main_recipe.food_categories.values_list('id', flat=True))
                         if (main_recipe.cooking_method != staple_recipe.cooking_method and
-                                staple_categories.isdisjoint(main_categories)):
+                                self.check_exclusion_rules(staple_categories, main_categories) and
+                                self.check_same_day_categories(date, user, staple_categories | main_categories)):
                             for side_recipe in side_recipes:
+                                if side_recipe.id != 144 and self.is_recently_used(recent_meal_plans, side_recipe):
+                                    continue
+
                                 side_categories = set(side_recipe.food_categories.values_list('id', flat=True))
                                 if (side_recipe.cooking_method != staple_recipe.cooking_method and
                                         side_recipe.cooking_method != main_recipe.cooking_method and
-                                        staple_categories.isdisjoint(side_categories) and
-                                        main_categories.isdisjoint(side_categories)):
+                                        self.check_exclusion_rules(staple_categories, side_categories, main_categories) and
+                                        self.check_same_day_categories(date, user, staple_categories | main_categories | side_categories)):
                                     MealPlan.objects.create(
                                         user=user,
                                         staple_recipe=staple_recipe,
@@ -112,10 +138,42 @@ class CreateMealPlansView(LoginRequiredMixin, View):
                                         side_recipe=side_recipe,
                                         meal_date=date
                                     )
-                                    return
+                                    return True
+        return False
 
+    def check_exclusion_rules(self, *category_sets):
+        for categories in category_sets:
+            for category_id in categories:
+                try:
+                    category = FoodCategory.objects.get(id=category_id)
+                    if category.is_next_day_excluded or category.is_next_3_day_excluded:
+                        return False
+                except FoodCategory.DoesNotExist:
+                    continue
+        return True
 
+    def check_same_day_categories(self, date, user, new_categories):
+        existing_categories = set()
+        meal_plans = MealPlan.objects.filter(user=user, meal_date=date)
+        for meal_plan in meal_plans:
+            if meal_plan.staple_recipe:
+                existing_categories.update(meal_plan.staple_recipe.food_categories.values_list('id', flat=True))
+            if meal_plan.main_recipe:
+                existing_categories.update(meal_plan.main_recipe.food_categories.values_list('id', flat=True))
+            if meal_plan.side_recipe:
+                existing_categories.update(meal_plan.side_recipe.food_categories.values_list('id', flat=True))
 
+        return existing_categories.isdisjoint(new_categories)
+
+    def is_recently_used(self, recent_meal_plans, recipe):
+        for meal_plan in recent_meal_plans:
+            if (meal_plan.staple_recipe and meal_plan.staple_recipe.id == recipe.id) or \
+               (meal_plan.main_recipe and meal_plan.main_recipe.id == recipe.id) or \
+               (meal_plan.side_recipe and meal_plan.side_recipe.id == recipe.id):
+                return True
+        return False
+    
+    
 class EditMealPlanView(LoginRequiredMixin, View):
     def get(self, request, start_date, end_date):
         start_date = datetime.date.fromisoformat(start_date)

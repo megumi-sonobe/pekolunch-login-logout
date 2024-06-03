@@ -43,7 +43,7 @@ class Users(AbstractBaseUser,PermissionsMixin):
     adult_count = models.IntegerField(default=2)
     children_count = models.IntegerField(default=0)
     
-    cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=True)
+    cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,default=30)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
