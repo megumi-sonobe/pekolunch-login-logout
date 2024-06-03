@@ -40,6 +40,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
     def form_invalid(self, form):
         # フォームのエラーをログに出力
         print(form.errors)
+        messages.error(self.request, "レシピの登録に失敗しました。入力内容を確認してください。")
         return super().form_invalid(form)
     
     def save_related_instances(self):
@@ -48,9 +49,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
 
         for name, unit in zip(ingredient_names, quantity_units):
             if name:
-                # 材料の量を1人分に調整して保存
-                adjusted_quantity = adjust_quantity(unit, 1 / self.object.serving)
-                Ingredient.objects.create(recipe=self.object, ingredient_name=name, quantity_unit=adjusted_quantity)
+                Ingredient.objects.create(recipe=self.object, ingredient_name=name, quantity_unit=unit)
         
         descriptions = self.request.POST.getlist('description', [])
         for description in descriptions:
@@ -83,6 +82,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
             context['process_form'] = ProcessForm(None)
         context['food_categories'] = FoodCategory.objects.all()  # フードカテゴリーをデータベースから取得
         return context
+
 
 class RecipeUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipe

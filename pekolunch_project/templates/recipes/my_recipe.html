@@ -12,6 +12,9 @@
         <div>
             {{ form.recipe_name.label_tag }}
             {{ form.recipe_name }}
+            {% if form.recipe_name.errors %}
+                <div class="error">{{ form.recipe_name.errors }}</div>
+            {% endif %}
         </div>
 
         <div>

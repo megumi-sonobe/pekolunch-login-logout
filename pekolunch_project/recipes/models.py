@@ -18,7 +18,7 @@ class FoodCategory(models.Model):
 class Recipe(models.Model):
     user = models.ForeignKey(Users,on_delete=models.CASCADE,related_name='recipes')
     food_categories = models.ManyToManyField(FoodCategory,through='RecipeFoodCategory')
-    recipe_name = models.CharField(max_length=32)
+    recipe_name = models.CharField(max_length=32,unique=True)
     menu_category = models.IntegerField(choices=MENU_CHOICES)
     cooking_time_min = models.IntegerField(choices=COOKING_TIME_CHOICES,null=False)
     cooking_method = models.IntegerField(choices=COOKING_METHOD_CHOICES,null=False)

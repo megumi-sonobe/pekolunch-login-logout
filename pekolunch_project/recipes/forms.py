@@ -109,6 +109,12 @@ class RecipeForm(forms.ModelForm):
             raise forms.ValidationError('5つまで選択できます。')
         return food_categories
 
+    def clean_recipe_name(self):
+        recipe_name = self.cleaned_data.get('recipe_name')
+        if Recipe.objects.filter(recipe_name=recipe_name).exists():
+            raise forms.ValidationError("このレシピ名は既に存在します。別の名前を選んでください。")
+        return recipe_name
+
     def save(self, commit=True):
         recipe = super().save(commit=False)
         recipe.share = int(self.cleaned_data['share'])  # Booleanからintに変換して保存

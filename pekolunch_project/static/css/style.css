@@ -447,3 +447,8 @@ img {
     color: #ff6347; /* 削除ボタンの色は赤 */
     cursor: pointer;
 }
+
+/* エラーメッセージ */
+.error {
+    color: red;
+}
