@@ -34,6 +34,7 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         no_recipes_found = False
 
         for date in date_list:
+            print(f"Processing date: {date}")
             if not self.save_meal_plan(date, user):
                 no_recipes_found = True
 
@@ -44,14 +45,17 @@ class CreateMealPlansView(LoginRequiredMixin, View):
 
         url = reverse('meal_planner:edit_meal_plan', kwargs={'start_date': start_date, 'end_date': end_date})
         return redirect(f"{url}?view_mode=custom")
-    
+
     def get(self, request):
         return HttpResponse("不正なリクエストメソッドです", status=405)
-    
+
     def save_meal_plan(self, date, user):
+        print(f"Saving meal plan for date: {date}")
+
         if MealPlan.objects.filter(user=user, meal_date=date).exists():
+            print(f"Meal plan already exists for date: {date}")
             return True
-    
+
         max_cooking_time = user.cooking_time_min
 
         staple_recipes = list(Recipe.objects.filter(
@@ -84,6 +88,22 @@ class CreateMealPlansView(LoginRequiredMixin, View):
             )
         ).order_by('-user_rating', '-average_evaluation'))
 
+        staple_recipes.extend(Recipe.objects.filter(
+            menu_category=1, cooking_time_min__lte=max_cooking_time
+        ).filter(models.Q(share=1) | models.Q(user=user)).filter(user_evaluations__isnull=True))
+
+        main_recipes.extend(Recipe.objects.filter(
+            menu_category=2, cooking_time_min__lte=max_cooking_time
+        ).filter(models.Q(share=1) | models.Q(user=user)).filter(user_evaluations__isnull=True))
+
+        side_recipes.extend(Recipe.objects.filter(
+            menu_category=3, cooking_time_min__lte=max_cooking_time
+        ).filter(models.Q(share=1) | models.Q(user=user)).filter(user_evaluations__isnull=True))
+
+        # ご飯の出現率を高めるための変更
+        rice_recipe = Recipe.objects.get(id=144)
+        staple_recipes += [rice_recipe] * 40  # ご飯のレシピを40回追加することで出現率を高める
+
         recent_meal_plans = MealPlan.objects.filter(user=user, meal_date__gte=date - datetime.timedelta(days=14))
 
         if staple_recipes and side_recipes:
@@ -92,19 +112,19 @@ class CreateMealPlansView(LoginRequiredMixin, View):
             random.shuffle(side_recipes)
 
             for staple_recipe in staple_recipes:
-                if staple_recipe.id != 144 and self.is_recently_used(recent_meal_plans, staple_recipe):
+                if self.is_recently_used(recent_meal_plans, staple_recipe):
                     continue
 
                 staple_categories = set(staple_recipe.food_categories.values_list('id', flat=True))
                 if staple_recipe.is_avoid_main_dish == 1:
                     for side_recipe in side_recipes:
-                        if side_recipe.id != 144 and self.is_recently_used(recent_meal_plans, side_recipe):
+                        if self.is_recently_used(recent_meal_plans, side_recipe):
                             continue
 
                         side_categories = set(side_recipe.food_categories.values_list('id', flat=True))
                         if (side_recipe.cooking_method != staple_recipe.cooking_method and
-                                self.check_exclusion_rules(staple_categories, side_categories) and
-                                self.check_same_day_categories(date, user, staple_categories | side_categories)):
+                                self.check_exclusion_rules(date, user, staple_categories, side_categories) and
+                                self.check_same_day_categories(date, user, staple_categories, side_categories)):
                             MealPlan.objects.create(
                                 user=user,
                                 staple_recipe=staple_recipe,
@@ -112,25 +132,28 @@ class CreateMealPlansView(LoginRequiredMixin, View):
                                 side_recipe=side_recipe,
                                 meal_date=date
                             )
+                            print(f"Meal plan created with staple {staple_recipe.recipe_name}, side {side_recipe.recipe_name} for date: {date}")
+                            print(f"Categories for date {date}: staple {staple_categories}, side {side_categories}")
+                            self.print_food_category_names(staple_recipe, side_recipe)
                             return True
                 else:
                     for main_recipe in main_recipes:
-                        if main_recipe.id != 144 and self.is_recently_used(recent_meal_plans, main_recipe):
+                        if self.is_recently_used(recent_meal_plans, main_recipe):
                             continue
 
                         main_categories = set(main_recipe.food_categories.values_list('id', flat=True))
                         if (main_recipe.cooking_method != staple_recipe.cooking_method and
-                                self.check_exclusion_rules(staple_categories, main_categories) and
-                                self.check_same_day_categories(date, user, staple_categories | main_categories)):
+                                self.check_exclusion_rules(date, user, staple_categories, main_categories) and
+                                self.check_same_day_categories(date, user, staple_categories, main_categories)):
                             for side_recipe in side_recipes:
-                                if side_recipe.id != 144 and self.is_recently_used(recent_meal_plans, side_recipe):
+                                if self.is_recently_used(recent_meal_plans, side_recipe):
                                     continue
 
                                 side_categories = set(side_recipe.food_categories.values_list('id', flat=True))
                                 if (side_recipe.cooking_method != staple_recipe.cooking_method and
                                         side_recipe.cooking_method != main_recipe.cooking_method and
-                                        self.check_exclusion_rules(staple_categories, side_categories, main_categories) and
-                                        self.check_same_day_categories(date, user, staple_categories | main_categories | side_categories)):
+                                        self.check_exclusion_rules(date, user, staple_categories, side_categories, main_categories) and
+                                        self.check_same_day_categories(date, user, staple_categories, main_categories, side_categories)):
                                     MealPlan.objects.create(
                                         user=user,
                                         staple_recipe=staple_recipe,
@@ -138,40 +161,103 @@ class CreateMealPlansView(LoginRequiredMixin, View):
                                         side_recipe=side_recipe,
                                         meal_date=date
                                     )
+                                    print(f"Meal plan created with staple {staple_recipe.recipe_name}, main {main_recipe.recipe_name}, side {side_recipe.recipe_name} for date: {date}")
+                                    print(f"Categories for date {date}: staple {staple_categories}, main {main_categories}, side {side_categories}")
+                                    self.print_food_category_names(staple_recipe, main_recipe, side_recipe)
                                     return True
+        print(f"No meal plan created for date: {date}")
         return False
 
-    def check_exclusion_rules(self, *category_sets):
+    def print_food_category_names(self, staple_recipe, main_recipe=None, side_recipe=None):
+        def get_category_names(recipe):
+            return [category.food_category_name for category in recipe.food_categories.all()]
+
+        print(f"Staple categories: {get_category_names(staple_recipe)}")
+        if main_recipe:
+            print(f"Main categories: {get_category_names(main_recipe)}")
+        if side_recipe:
+            print(f"Side categories: {get_category_names(side_recipe)}")
+
+    def check_exclusion_rules(self, date, user, *category_sets):
         for categories in category_sets:
             for category_id in categories:
                 try:
                     category = FoodCategory.objects.get(id=category_id)
-                    if category.is_next_day_excluded or category.is_next_3_day_excluded:
+                    if self.is_excluded(date, user, category):
+                        print(f"Excluding category: {category.food_category_name}")
                         return False
                 except FoodCategory.DoesNotExist:
                     continue
         return True
 
-    def check_same_day_categories(self, date, user, new_categories):
-        existing_categories = set()
+    def get_last_used_date(self, user, category_id):
+        last_used_dates = MealPlan.objects.filter(
+            user=user
+        ).filter(
+            models.Q(staple_recipe__food_categories__id=category_id) |
+            models.Q(main_recipe__food_categories__id=category_id) |
+            models.Q(side_recipe__food_categories__id=category_id)
+        ).values_list('meal_date', flat=True).order_by('-meal_date')
+
+        return last_used_dates.first() if last_used_dates.exists() else None
+    
+    def is_excluded(self, date, user, category):
+        next_day = date + datetime.timedelta(days=1)
+        three_days_ago = date - datetime.timedelta(days=3)
+
+        # 翌日を除外するフラグが立っていて、そのカテゴリーが前日に使用されている場合
+        if category.is_next_day_excluded and self.is_category_used(date - datetime.timedelta(days=1), user, category.id):
+            return True
+
+        # 3日間を除外するフラグが立っていて、そのカテゴリーが最後に使用された日から3日以内に使用されている場合
+        if category.is_next_3_day_excluded:
+            for day in range(1, 4):
+                check_date = date - datetime.timedelta(days=day)
+                if self.is_category_used(check_date, user, category.id):
+                    return True
+
+        return False
+
+    def is_category_used(self, date, user, category_id):
         meal_plans = MealPlan.objects.filter(user=user, meal_date=date)
         for meal_plan in meal_plans:
-            if meal_plan.staple_recipe:
-                existing_categories.update(meal_plan.staple_recipe.food_categories.values_list('id', flat=True))
-            if meal_plan.main_recipe:
-                existing_categories.update(meal_plan.main_recipe.food_categories.values_list('id', flat=True))
-            if meal_plan.side_recipe:
-                existing_categories.update(meal_plan.side_recipe.food_categories.values_list('id', flat=True))
+            if meal_plan.staple_recipe and category_id in meal_plan.staple_recipe.food_categories.values_list('id', flat=True):
+                return True
+            if meal_plan.main_recipe and category_id in meal_plan.main_recipe.food_categories.values_list('id', flat=True):
+                return True
+            if meal_plan.side_recipe and category_id in meal_plan.side_recipe.food_categories.values_list('id', flat=True):
+                return True
+        return False
 
-        return existing_categories.isdisjoint(new_categories)
+    def check_same_day_categories(self, date, user, *category_sets):
+        all_new_categories = set()
+        for categories in category_sets:
+            all_new_categories.update(categories)
+
+        print(f"New categories for {date}: {all_new_categories}")
+
+        # 新しいカテゴリ同士で重複がないことを確認する
+        new_categories_combined = set()
+        for categories in category_sets:
+            if not new_categories_combined.isdisjoint(categories):
+                print(f"Duplicate found within new categories on {date}")
+                return False
+            new_categories_combined.update(categories)
+
+        return True
 
     def is_recently_used(self, recent_meal_plans, recipe):
+        if recipe.id == 144:  # ご飯のレシピIDを特別扱い
+            return False
         for meal_plan in recent_meal_plans:
             if (meal_plan.staple_recipe and meal_plan.staple_recipe.id == recipe.id) or \
                (meal_plan.main_recipe and meal_plan.main_recipe.id == recipe.id) or \
                (meal_plan.side_recipe and meal_plan.side_recipe.id == recipe.id):
+                print(f"Recently used recipe: {recipe.recipe_name}")
                 return True
         return False
+
+
     
     
 class EditMealPlanView(LoginRequiredMixin, View):
