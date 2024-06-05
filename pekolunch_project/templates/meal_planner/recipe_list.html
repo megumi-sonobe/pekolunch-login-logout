@@ -18,7 +18,7 @@
                     <div class="recipe-item">
                         <a href="{% url 'recipes:recipe_detail' recipe.id %}">
                             {% if recipe.image_url %}
-                                <img src="{{ recipe.image_url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
+                                <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
                             {% else %}
                                 <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
                             {% endif %}
@@ -39,12 +39,12 @@
             </div>
         {% endif %}
 
-        <!-- ページネーションリンクの追加 -->  
+        <!-- ページネーションリンクの追加 -->
         <div class="pagination">
             <span class="step-links">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1{% if from_edit_meal_plan %}&from_edit_meal_plan={{ from_edit_meal_plan }}{% endif %}{% if date %}&date={{ date|urlencode }}{% endif %}{% if meal_type %}&meal_type={{ meal_type|urlencode }}{% endif %}">&laquo; 最初</a>
-                    <a href="?page={{ page_obj.previous_page_number }}{% if from_edit_meal_plan %}&from_edit_meal_plan={{ from_edit_meal_plan }}{% endif %}{% if date %}&date={{ date|urlencode }}{% endif %}{% if meal_type %}&meal_type={{ meal_type|urlencode }}{% endif %}">前へ</a>
+                    <a href="?page=1&from_edit_meal_plan={{ from_edit_meal_plan }}&date={{ date|urlencode }}&meal_type={{ meal_type|urlencode }}">&laquo; 最初</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&from_edit_meal_plan={{ from_edit_meal_plan }}&date={{ date|urlencode }}&meal_type={{ meal_type|urlencode }}">前へ</a>
                 {% endif %}
 
                 <span class="current">
@@ -52,8 +52,8 @@
                 </span>
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if from_edit_meal_plan %}&from_edit_meal_plan={{ from_edit_meal_plan }}{% endif %}{% if date %}&date={{ date|urlencode }}{% endif %}{% if meal_type %}&meal_type={{ meal_type|urlencode }}{% endif %}">次へ</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}{% if from_edit_meal_plan %}&from_edit_meal_plan={{ from_edit_meal_plan }}{% endif %}{% if date %}&date={{ date|urlencode }}{% endif %}{% if meal_type %}&meal_type={{ meal_type|urlencode }}{% endif %}">最後 &raquo;</a>
+                    <a href="?page={{ page_obj.next_page_number }}&from_edit_meal_plan={{ from_edit_meal_plan }}&date={{ date|urlencode }}&meal_type={{ meal_type|urlencode }}">次へ</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&from_edit_meal_plan={{ from_edit_meal_plan }}&date={{ date|urlencode }}&meal_type={{ meal_type|urlencode }}">最後 &raquo;</a>
                 {% endif %}
             </span>
         </div>

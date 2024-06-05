@@ -228,15 +228,19 @@ class RecipeListView(LoginRequiredMixin, ListView):
         return context
 
 def search(request):
-    query = request.GET.get('q')
-    filters = request.GET.getlist('filter')
+    query = request.GET.get('q', '')
+    filters = request.GET.getlist('filter', [])
     user = request.user
-    
-    recipes = Recipe.objects.filter(models.Q(share=1) | models.Q(user=user))  # shareフィールドが1であるか、現在のユーザーが作成したレシピを表示
-    
+
+    from_edit_meal_plan = request.GET.get('from_edit_meal_plan', False)
+    date = request.GET.get('date', '')
+    meal_type = request.GET.get('meal_type', '')
+
+    recipes = Recipe.objects.filter(models.Q(share=1) | models.Q(user=user))
+
     if query:
-        recipes = Recipe.objects.filter(recipe_name__icontains=query)
-        
+        recipes = recipes.filter(recipe_name__icontains=query)
+
     if 'my_recipe' in filters:
         recipes = recipes.filter(user=user)
     if 'three_star' in filters:
@@ -248,26 +252,30 @@ def search(request):
     if 'sub_dish' in filters:
         recipes = recipes.filter(menu_category=3)
     if 'soup' in filters:
-        recipes = recipes.filter(menu_category=4) 
-    
+        recipes = recipes.filter(menu_category=4)
+
     recipes = recipes.order_by('-average_evaluation')
-    
-    paginator = Paginator(recipes,10)
+
+    paginator = Paginator(recipes, 10)
     page = request.GET.get('page')
-    
+
     try:
         recipes = paginator.page(page)
     except PageNotAnInteger:
         recipes = paginator.page(1)
     except EmptyPage:
         recipes = paginator.page(paginator.num_pages)
-        
-    context = {
-            'recipes':recipes,
-            'page_obj':recipes,
-    }
-    return render(request,'recipes/recipe_list.html',context)
 
+    context = {
+        'recipes': recipes,
+        'page_obj': recipes,
+        'from_edit_meal_plan': from_edit_meal_plan,
+        'date': date,
+        'meal_type': meal_type,
+        'request': request,
+    }
+
+    return render(request, 'meal_planner/recipe_list.html', context)
 class RecipeDetailView(LoginRequiredMixin, DetailView):
     model = Recipe
     template_name = 'recipes/recipe_detail.html'
