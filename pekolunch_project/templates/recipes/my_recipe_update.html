@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}
-    レシピを編集 - peko Lunch
+    マイレシピ編集 - peko Lunch
 {% endblock %}
 
 {% block content %}
 
-    <h2>レシピを編集</h2>
+    <h2>マイレシピ編集</h2>
     
     <form id="recipe-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -126,15 +126,16 @@
             <input type="hidden" name="rating-value" id="rating-value" value="{% if user_evaluation %}{{ user_evaluation.evaluation }}{% else %}0{% endif %}">
         </div>
 
-        <button type="submit">レシピを更新</button>
+        <button type="submit" class="register-button">レシピを更新</button>
     </form>
     
-    <br><br>
+    <br>
     <p><a href="{% url 'recipes:recipe_detail' recipe.pk %}" class="btn btn-secondary">レシピに戻る</a></p>
-    <br><br>
-    <!-- 削除確認ページへのリンク -->
-    <p><a href="{% url 'recipes:recipe_delete' recipe.pk %}" class="btn btn-danger">レシピを削除</a></p>
-
+    <br>
+    <div style="text-align: right;"> <!-- 右寄せのdivを追加 -->
+        <!-- 削除確認ページへのリンク -->
+        <p><a href="{% url 'recipes:recipe_delete' recipe.pk %}" class="btn btn-danger">レシピを削除</a></p>
+    </div>
     <script>
         function addIngredient() {
             var table = document.getElementById("ingredients_table");

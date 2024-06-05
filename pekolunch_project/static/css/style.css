@@ -3,7 +3,7 @@
     margin: auto !important;
     max-width: 1200px !important;
 }
-
+/* ログイン画面 */
 .container-center {
     display: flex;
     justify-content: center;
@@ -23,8 +23,12 @@
     margin: 20px auto;
 }
 
+.form-group {
+    margin-bottom: 15px; /* フォーム要素間の間隔を追加 */
+}
+
 .navbar {
-    background-color: #f8f9fa; /* 背景色の変更 */
+    background-color: #eeeeee; /* 背景色の変更 */
     padding: 10px 20px; /* パディングの追加 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* シャドウを追加して浮き上がらせる */
 }
@@ -91,6 +95,21 @@ calendar {
 
 #create-meal-plan-btn-container{
     text-align: center;
+}
+/* 献立作成ボタンのスタイル */
+.btn-primary {
+    background-color:#f7b02d !important; /* 山吹色 */
+    color: white !important;
+    font-size: 1em;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #d98c1d !important; /* ダーク山吹色 */
 }
 
 #selectedDateDisplay {
@@ -452,3 +471,58 @@ img {
 .error {
     color: red;
 }
+
+
+/* マイページ三ツ星レシピのスタイル */
+.recipe-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+}
+
+.recipe-item {
+    text-align: center;
+}
+
+.recipe-image {
+    width: 100px;
+    height: 100px;
+}
+
+.save-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.save-button {
+    background-color: #007bff;
+    color: white;
+    font-size: 1em;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+    background-color: #0056b3;
+}
+
+.register-button {
+    background-color: #f7b02d; /* 山吹色 */
+    color: white; /* ボタンのテキスト色を白に設定 */
+    padding: 10px 20px; /* ボタンの内側の余白 */
+    border: none; /* ボタンの枠線をなくす */
+    border-radius: 5px; /* ボタンの角を丸くする */
+    cursor: pointer; /* ボタンにポインターを表示 */
+    transition: background-color 0.3s ease; /* ホバー時のアニメーション */
+}
+
+.register-button:hover {
+    background-color: #d98c1d; /* ホバー時の背景色 */
+}
+

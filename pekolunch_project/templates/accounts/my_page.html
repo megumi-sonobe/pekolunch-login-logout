@@ -26,9 +26,12 @@
     </div>
 
     <h3>{{ user.username }}</h3> <!-- ユーザー名 -->
+    <a href="{% url 'accounts:user_update' %}">アカウント情報変更</a> <!-- アカウント情報変更リンク -->
+    <br><br>
 
     <div>
         <p>家族構成：</p>
+        <p><small>＊レシピに反映されます。子ども＝0.5人分</small></p>
         {{ form.adult_count.label_tag }} {{ form.adult_count }}人
     </div>
     <br>
@@ -45,14 +48,15 @@
 
     <div>
         <label>三ツ星レシピ：</label>
+        <p><small>＊ご自身で三つ星評価をつけたレシピです。</small></p>
         {% if three_star_recipes %}
-            <ul>
+            <ul class="recipe-list">
                 {% for recipe in three_star_recipes %}
-                    <li>
+                    <li class="recipe-item">
                         {% if recipe.image_url %}
-                            <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="100" height="100">
+                            <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" class="recipe-image">
                         {% else %}
-                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="100" height="100">
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" class="recipe-image">
                         {% endif %}
                         <p><a href="{% url 'recipes:recipe_detail' recipe.pk %}">{{ recipe.recipe_name }}</a></p>
                     </li>
@@ -63,10 +67,10 @@
         {% endif %}
     </div>
 
-    <button type="submit">保存</button>
+    <div class="save-button-container">
+        <button type="submit" class="save-button">保存</button>
+    </div>
 </form>
-
-<a href="{% url 'accounts:user_update' %}">アカウント情報変更</a>
 
 <script>
     function previewImage(event) {

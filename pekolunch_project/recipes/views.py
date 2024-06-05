@@ -21,7 +21,7 @@ User = get_user_model()
 
 class RecipeCreateView(LoginRequiredMixin, CreateView):
     model = Recipe
-    form_class = RecipeForm 
+    form_class = RecipeForm
     template_name = 'recipes/my_recipe.html'
 
     def form_valid(self, form):
@@ -32,17 +32,20 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
             self.save_related_instances()
             self.save_user_evaluation()
             messages.success(self.request, f"レシピに「{self.object.recipe_name}」が登録されました。")
-            return redirect('recipes:my_recipe_create')  
+            return redirect('recipes:my_recipe_create')
         except Exception as e:
             print(f"Exception occurred during form submission: {e}")
             return self.form_invalid(form)
-        
+
     def form_invalid(self, form):
         # フォームのエラーをログに出力
         print(form.errors)
-        messages.error(self.request, "レシピの登録に失敗しました。入力内容を確認してください。")
-        return super().form_invalid(form)
-    
+        # メッセージが既に追加されていない場合にのみ追加
+        storage = messages.get_messages(self.request)
+        if not any(message.message == "レシピの登録に失敗しました。入力内容を確認してください。" for message in storage):
+            messages.error(self.request, "レシピの登録に失敗しました。入力内容を確認してください。")
+        return self.render_to_response(self.get_context_data(form=form))
+
     def save_related_instances(self):
         ingredient_names = self.request.POST.getlist('ingredient_name', [])
         quantity_units = self.request.POST.getlist('quantity_unit', [])  # 量の単位を取得
@@ -50,32 +53,23 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
         for name, unit in zip(ingredient_names, quantity_units):
             if name:
                 Ingredient.objects.create(recipe=self.object, ingredient_name=name, quantity_unit=unit)
-        
+
         descriptions = self.request.POST.getlist('description', [])
         for description in descriptions:
             if description:
                 last_process = Process.objects.filter(recipe=self.object).order_by('-process_number').first()
                 process_number = 1 if not last_process else last_process.process_number + 1
                 Process.objects.create(recipe=self.object, description=description, process_number=process_number)
-                
+
         food_categories = self.request.POST.getlist('food_categories', [])
         self.object.food_categories.set(food_categories)  # food_categoriesを保存
-        
-        # フードカテゴリーのIDと名前を取得して表示
-        food_categories_with_names = [(category.id, category.food_category_name) for category in FoodCategory.objects.filter(id__in=food_categories)]
-        print(f"選択したフードカテゴリー: {food_categories_with_names}")
-    
+
     def save_user_evaluation(self):
         rating_value = self.request.POST.get('rating-value')
-        print(f'Rating value: {rating_value}')  # デバッグ用
         if rating_value is not None and rating_value.isdigit():
             evaluation = int(rating_value)
             UserEvaluation.objects.create(user=self.request.user, recipe=self.object, evaluation=evaluation)
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        return kwargs
-    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'process_form' not in context:
@@ -164,7 +158,7 @@ class RecipeDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Recipe
     template_name = 'recipes/recipe_delete.html'
     success_url = reverse_lazy('recipes:recipe_list')
-    success_message = "レシピが正常に削除されました。"
+    success_message = "レシピが削除されました。"
 
     def get_queryset(self):
         # ユーザーが自分のレシピのみ削除できるようにする

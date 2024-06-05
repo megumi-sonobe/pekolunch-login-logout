@@ -26,7 +26,7 @@ class ProcessForm(forms.ModelForm):
 
     def save(self, commit=True):
         process = super().save(commit=False)
-        if not process.pk and self.instance.recipe_id:  # Ensure instance has recipe_id
+        if not process.pk and self.instance.recipe_id: 
             last_process = Process.objects.filter(recipe=self.instance.recipe).order_by('-process_number').first()
             if last_process:
                 process.process_number = last_process.process_number + 1
@@ -105,6 +105,8 @@ class RecipeForm(forms.ModelForm):
 
     def clean_food_categories(self):
         food_categories = self.cleaned_data.get('food_categories')
+        if not food_categories:
+            raise forms.ValidationError('主な使用食材を1つ以上選択してください。')
         if len(food_categories) > 5:
             raise forms.ValidationError('5つまで選択できます。')
         return food_categories
@@ -114,6 +116,24 @@ class RecipeForm(forms.ModelForm):
         if Recipe.objects.filter(recipe_name=recipe_name).exists():
             raise forms.ValidationError("このレシピ名は既に存在します。別の名前を選んでください。")
         return recipe_name
+    
+    def clean_menu_category(self):
+        menu_category = self.cleaned_data.get('menu_category')
+        if menu_category is None:
+            raise forms.ValidationError('カテゴリーを選択してください。')
+        return menu_category
+
+    def clean_cooking_time_min(self):
+        cooking_time_min = self.cleaned_data.get('cooking_time_min')
+        if cooking_time_min is None:
+            raise forms.ValidationError('調理時間を選択してください。')
+        return cooking_time_min
+
+    def clean_cooking_method(self):
+        cooking_method = self.cleaned_data.get('cooking_method')
+        if cooking_method is None:
+            raise forms.ValidationError('調理法を選択してください。')
+        return cooking_method
 
     def save(self, commit=True):
         recipe = super().save(commit=False)

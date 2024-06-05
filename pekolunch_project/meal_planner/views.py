@@ -41,7 +41,7 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         if no_recipes_found:
             messages.error(request, "ルールに当てはまるレシピが見つかりませんでした。")
         else:
-            messages.success(request, "食事プランが正常に作成されました。")
+            messages.success(request, "献立が正常に作成されました。")
 
         url = reverse('meal_planner:edit_meal_plan', kwargs={'start_date': start_date, 'end_date': end_date})
         return redirect(f"{url}?view_mode=custom")

@@ -4,22 +4,37 @@
 {% endblock %}
 
 {% block content %}
+    <h2>マイレシピ登録</h2>
 
-    <h2>マイレシピ</h2>
-    
+    <!-- フォーム全体のエラーメッセージをここに表示 -->
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
     <form id="recipe-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div>
             {{ form.recipe_name.label_tag }}
             {{ form.recipe_name }}
-            {% if form.recipe_name.errors %}
-                <div class="error">{{ form.recipe_name.errors }}</div>
-            {% endif %}
         </div>
 
         <div>
             {{ form.menu_category.label_tag }}
             {{ form.menu_category }}
+
+            {{ form.is_avoid_main_dish.label_tag }}
+            {{ form.is_avoid_main_dish }}
         </div>
 
         <div>
@@ -53,14 +68,8 @@
             {{ form.image_url.label_tag }}
             {{ form.image_url }}
         </div>
-        <div>
-            {{ form.share.label_tag }}
-            {{ form.share }}
-        </div>
-        <div>
-            {{ form.is_avoid_main_dish.label_tag }}
-            {{ form.is_avoid_main_dish }}
-        </div>
+
+
 
         <div id="ingredients-container" style="position: relative;">
             <p style="display: inline-block; margin-right: 10px;">材料：</p>
@@ -98,7 +107,6 @@
                     <tr>
                         <td>1</td>
                         <td><input type="text" name="description" required></td>
-
                     </tr>
                 </table>
                 <button type="button" onclick="addProcess()">行を追加</button>
@@ -116,7 +124,12 @@
             <input type="hidden" name="rating-value" id="rating-value" value="0">
         </div>
 
-        <button type="submit">登録</button>
+        <div>
+            {{ form.share.label_tag }}
+            {{ form.share }}
+        </div>
+
+        <button type="submit" class="register-button">登録</button>
     </form>
 
     <script>
