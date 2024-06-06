@@ -71,12 +71,12 @@ class Process(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args, **kwargs):
-        if not self.pk:  # 新しいプロセスの場合のみ
+        if not self.pk:
             last_process = Process.objects.filter(recipe=self.recipe).order_by('-process_number').first()
             if last_process:
                 self.process_number = last_process.process_number + 1
             else:
-                self.process_number = 1  # 最初のプロセスの場合
+                self.process_number = 1  
         super().save(*args, **kwargs)
     
         

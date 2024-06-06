@@ -39,7 +39,7 @@ class CreateMealPlansView(LoginRequiredMixin, View):
                 no_recipes_found = True
 
         if no_recipes_found:
-            messages.error(request, "ルールに当てはまるレシピが見つかりませんでした。")
+            messages.error(request, "ルールに当てはまるレシピが見つかりませんでした。マイレシピを登録してみましょう！")
         else:
             messages.success(request, "献立が正常に作成されました。")
 
@@ -100,7 +100,7 @@ class CreateMealPlansView(LoginRequiredMixin, View):
             menu_category=3, cooking_time_min__lte=max_cooking_time
         ).filter(models.Q(share=1) | models.Q(user=user)).filter(user_evaluations__isnull=True))
 
-        # ご飯の出現率を高めるための変更
+        # ご飯の出現率を高める
         rice_recipe = Recipe.objects.get(id=144)
         staple_recipes += [rice_recipe] * 40  # ご飯のレシピを40回追加することで出現率を高める
 
@@ -205,11 +205,11 @@ class CreateMealPlansView(LoginRequiredMixin, View):
         next_day = date + datetime.timedelta(days=1)
         three_days_ago = date - datetime.timedelta(days=3)
 
-        # 翌日を除外するフラグが立っていて、そのカテゴリーが前日に使用されている場合
+        # 翌日を除外するカテゴリーが前日に使用されている場合
         if category.is_next_day_excluded and self.is_category_used(date - datetime.timedelta(days=1), user, category.id):
             return True
 
-        # 3日間を除外するフラグが立っていて、そのカテゴリーが最後に使用された日から3日以内に使用されている場合
+        # 3日間を除外するカテゴリーが最後に使用された日から3日以内に使用されている場合
         if category.is_next_3_day_excluded:
             for day in range(1, 4):
                 check_date = date - datetime.timedelta(days=day)
@@ -303,19 +303,19 @@ class EditMealPlanView(LoginRequiredMixin, View):
                 'staple_recipe': plan.staple_recipe.recipe_name if plan.staple_recipe else '献立なし',
                 'main_recipe': plan.main_recipe.recipe_name if plan.main_recipe else '献立なし',
                 'side_recipe': plan.side_recipe.recipe_name if plan.side_recipe else '献立なし',
-                'soup_recipe': plan.soup_recipe.recipe_name if plan.soup_recipe else '献立なし',  # 新しい汁物のフィールド
+                'soup_recipe': plan.soup_recipe.recipe_name if plan.soup_recipe else '献立なし',  #
                 'staple_recipe_id': plan.staple_recipe.id if plan.staple_recipe else None,
                 'main_recipe_id': plan.main_recipe.id if plan.main_recipe else None,
                 'side_recipe_id': plan.side_recipe.id if plan.side_recipe else None,
-                'soup_recipe_id': plan.soup_recipe.id if plan.soup_recipe else None,  # 新しい汁物のフィールド
+                'soup_recipe_id': plan.soup_recipe.id if plan.soup_recipe else None,  
                 'staple_recipe_image': plan.staple_recipe.image_url.url if plan.staple_recipe and plan.staple_recipe.image_url else None,
                 'main_recipe_image': plan.main_recipe.image_url.url if plan.main_recipe and plan.main_recipe.image_url else None,
                 'side_recipe_image': plan.side_recipe.image_url.url if plan.side_recipe and plan.side_recipe.image_url else None,
-                'soup_recipe_image': plan.soup_recipe.image_url.url if plan.soup_recipe and plan.soup_recipe.image_url else None,  # 新しい汁物のフィールド
+                'soup_recipe_image': plan.soup_recipe.image_url.url if plan.soup_recipe and plan.soup_recipe.image_url else None,  
                 'staple_recipe_evaluation': get_evaluation(plan.staple_recipe),
                 'main_recipe_evaluation': get_evaluation(plan.main_recipe),
                 'side_recipe_evaluation': get_evaluation(plan.side_recipe),
-                'soup_recipe_evaluation': get_evaluation(plan.soup_recipe)  # 新しい汁物のフィールド
+                'soup_recipe_evaluation': get_evaluation(plan.soup_recipe)  
             }
         else:
             return {
@@ -323,19 +323,19 @@ class EditMealPlanView(LoginRequiredMixin, View):
                 'staple_recipe': '献立なし',
                 'main_recipe': '献立なし',
                 'side_recipe': '献立なし',
-                'soup_recipe': '献立なし',  # 新しい汁物のフィールド
+                'soup_recipe': '献立なし', 
                 'staple_recipe_id': None,
                 'main_recipe_id': None,
                 'side_recipe_id': None,
-                'soup_recipe_id': None,  # 新しい汁物のフィールド
+                'soup_recipe_id': None,  
                 'staple_recipe_image': None,
                 'main_recipe_image': None,
                 'side_recipe_image': None,
-                'soup_recipe_image': None,  # 新しい汁物のフィールド
+                'soup_recipe_image': None,  
                 'staple_recipe_evaluation': None,
                 'main_recipe_evaluation': None,
                 'side_recipe_evaluation': None,
-                'soup_recipe_evaluation': None  # 新しい汁物のフィールド
+                'soup_recipe_evaluation': None 
             }
 
     def format_date_range(self, start_date, end_date):

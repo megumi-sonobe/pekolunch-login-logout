@@ -2,7 +2,7 @@ import csv
 import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from recipes.models import FoodCategory  # 適切なアプリ名とモデル名を使用
+from recipes.models import FoodCategory  
 
 class Command(BaseCommand):
     help = 'Import food categories from a CSV file into the database'

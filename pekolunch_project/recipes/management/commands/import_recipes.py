@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = 'Load recipes from CSV file'
 
     def handle(self, *args, **kwargs):
-        csv_file_path = os.path.join(settings.BASE_DIR, 'data/recipes.csv')  # 適切なパスに変更してください
+        csv_file_path = os.path.join(settings.BASE_DIR, 'data/recipes.csv')  
 
         added_recipes = []
 

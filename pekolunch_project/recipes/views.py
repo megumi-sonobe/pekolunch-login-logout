@@ -40,7 +40,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
     def form_invalid(self, form):
         # フォームのエラーをログに出力
         print(form.errors)
-        # メッセージが既に追加されていない場合にのみ追加
+     
         storage = messages.get_messages(self.request)
         if not any(message.message == "レシピの登録に失敗しました。入力内容を確認してください。" for message in storage):
             messages.error(self.request, "レシピの登録に失敗しました。入力内容を確認してください。")
@@ -48,7 +48,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
 
     def save_related_instances(self):
         ingredient_names = self.request.POST.getlist('ingredient_name', [])
-        quantity_units = self.request.POST.getlist('quantity_unit', [])  # 量の単位を取得
+        quantity_units = self.request.POST.getlist('quantity_unit', []) 
 
         for name, unit in zip(ingredient_names, quantity_units):
             if name:
@@ -62,7 +62,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
                 Process.objects.create(recipe=self.object, description=description, process_number=process_number)
 
         food_categories = self.request.POST.getlist('food_categories', [])
-        self.object.food_categories.set(food_categories)  # food_categoriesを保存
+        self.object.food_categories.set(food_categories)  
 
     def save_user_evaluation(self):
         rating_value = self.request.POST.get('rating-value')
@@ -110,8 +110,8 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
     
     def form_valid(self, form):
         try:
-            self.object = form.save(commit=False)  # commit=Falseで保存を遅延
-            self.object.save()  # ここでオブジェクトをデータベースに保存してIDを取得
+            self.object = form.save(commit=False)  
+            self.object.save() 
             self.save_related_instances()
             self.save_user_evaluation()
             return super().form_valid(form)
@@ -121,12 +121,12 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
         
     def form_invalid(self, form):
         process_form = ProcessForm(self.request.POST)
-        print(form.errors)  # フォームのエラーをログに出力
+        print(form.errors)  
         return self.render_to_response(self.get_context_data(form=form))
     
     def save_related_instances(self):
         ingredient_names = self.request.POST.getlist('ingredient_name', [])
-        quantity_units = self.request.POST.getlist('quantity_unit', [])  # 量の単位を取得
+        quantity_units = self.request.POST.getlist('quantity_unit', [])  
 
         # 既存の材料を削除
         self.object.ingredient_set.all().delete()
@@ -287,7 +287,6 @@ class RecipeDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         user_evaluation = UserEvaluation.objects.filter(user=self.request.user, recipe=recipe).first()
         
-        # セッションから人数を取得、なければユーザーのデフォルト値を使用
         adult_count = self.request.session.get('adult_count', user.adult_count)
         children_count = self.request.session.get('children_count', user.children_count)
         

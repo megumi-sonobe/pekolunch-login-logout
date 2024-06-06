@@ -456,7 +456,7 @@ img {
     background-color: #f0f0f0;
     border-radius: 5px;
     display: inline-block;
-    margin-right: 10px; /* 食材の間に右側のマージンを追加 */
+    margin-right: 10px; /* 食材の間に右側の余白を追加 */
 }
 
 #selected-food-categories-list li button.remove-btn {
@@ -512,6 +512,7 @@ img {
     background-color: #0056b3;
 }
 
+/* 登録ボタン */
 .register-button {
     background-color: #f7b02d; /* 山吹色 */
     color: white; /* ボタンのテキスト色を白に設定 */

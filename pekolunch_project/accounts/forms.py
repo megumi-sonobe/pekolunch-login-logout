@@ -41,8 +41,6 @@ class RegistForm(forms.ModelForm):
             self.add_error('password','パスワードは半角英文字と数字を含んでください。')
         
         
-            # for message in e.messages:
-            #     self.add_error('password',message)
         
     def save(self,commit=True):
         user = super().save(commit=False)
@@ -83,15 +81,6 @@ class UserUpdateForm(forms.ModelForm):
             raise forms.ValidationError('このメールアドレスは既に使用されています')
         return email
     
-    # def clean_current_password(self):
-    #     current_password = self.cleaned_data.get('current_password')
-        
-    #     if current_password:
-    #         user = self.instance
-    #         if not user.check_password(current_password):
-    #             raise forms.ValidationError('現在のパスワードが間違っています')
-            
-    #     return current_password
     
     def clean(self):
         cleaned_data = super().clean()

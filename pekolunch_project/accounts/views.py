@@ -41,7 +41,6 @@ class RegistUserView(CreateView):
         return redirect(self.success_url)
     
     def form_invalid(self, form):
-        self.request.session['django.contrib.messeges.error'] = []
         print("フォームのデータが無効:", form.errors)
         messages.error(self.request, "入力された情報に問題があります。正しい情報を入力してください。")
         return super().form_invalid(form)
@@ -88,9 +87,6 @@ class UserUpdateView(LoginRequiredMixin,UpdateView):
     
     
     def form_valid(self,form):
-        # user = self.request.user
-        # form.save()
-        
         new_password = form.cleaned_data.get('new_password')
         if new_password:
             self.request.user.set_password(new_password)

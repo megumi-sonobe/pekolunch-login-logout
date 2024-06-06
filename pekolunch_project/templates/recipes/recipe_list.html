@@ -19,7 +19,7 @@
                     <div class="recipe-item">
                         <a href="{% url 'recipes:recipe_detail' recipe.id %}">
                             {% if recipe.image_url %}
-                                <img src="{{ recipe.image_url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
+                                <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
                             {% else %}
                                 <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
                             {% endif %}

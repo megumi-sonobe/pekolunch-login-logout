@@ -21,12 +21,12 @@
             </label>
             <input type="file" id="image_upload" name="image_url" style="display: none;" onchange="previewImage(event)">
         </div>
-        <button type="button" id="clear-image" class="clear-image-btn">×</button> <!-- クリアボタン -->
-        <input type="checkbox" id="image_url-clear" name="image_url-clear" style="display: none;"> <!-- クリアチェックボックス -->
+        <button type="button" id="clear-image" class="clear-image-btn">×</button> 
+        <input type="checkbox" id="image_url-clear" name="image_url-clear" style="display: none;"> 
     </div>
 
-    <h3>{{ user.username }}</h3> <!-- ユーザー名 -->
-    <a href="{% url 'accounts:user_update' %}">アカウント情報変更</a> <!-- アカウント情報変更リンク -->
+    <h3>{{ user.username }}</h3> 
+    <a href="{% url 'accounts:user_update' %}">アカウント情報変更</a> 
     <br><br>
 
     <div>
@@ -47,7 +47,7 @@
     <br>
 
     <div>
-        <label>三ツ星レシピ：</label>
+        <label>三つ星レシピ：</label>
         <p><small>＊ご自身で三つ星評価をつけたレシピです。</small></p>
         {% if three_star_recipes %}
             <ul class="recipe-list">
@@ -86,7 +86,7 @@
         var profileImage = document.getElementById('profile-image');
         profileImage.src = "{{ MEDIA_URL }}default_profile_image.png";
         document.getElementById('image_upload').value = '';
-        document.getElementById('image_url-clear').checked = true;  // クリアチェックボックスをチェックする
+        document.getElementById('image_url-clear').checked = true;  
     });
 </script>
 

@@ -38,7 +38,6 @@ class ProcessForm(forms.ModelForm):
 
 
 class IngredientForm(forms.ModelForm):
-    # 分量・単位のフィールドを追加
     quantity_unit = forms.CharField(max_length=32, label='分量・単位')
 
     class Meta:
@@ -54,7 +53,7 @@ class IngredientForm(forms.ModelForm):
         ingredient_name = self.cleaned_data['ingredient_name']
         quantity_unit = self.cleaned_data['quantity_unit']
 
-        if ingredient_name and quantity_unit:  # 材料名と分量が入力されていることを確認
+        if ingredient_name and quantity_unit:  
             ingredient.ingredient_name = ingredient_name
             ingredient.quantity_unit = quantity_unit
 
