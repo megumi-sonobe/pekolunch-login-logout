@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('',views.portfolio,name='portfolio'),
     path('accounts/',include('accounts.urls')),
     path('meal_planner/',include('meal_planner.urls')),
     path('recipes/',include('recipes.urls')),

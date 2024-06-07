@@ -100,8 +100,8 @@ calendar {
 .btn-primary {
     background-color:#f7b02d !important; /* 山吹色 */
     color: white !important;
-    font-size: 1em;
-    padding: 10px 20px;
+    font-size: 1.2em; /* 文字サイズを大きくする */
+    padding: 10px 20px; /* ボタンの内側の余白を大きくする */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -525,5 +525,42 @@ img {
 
 .register-button:hover {
     background-color: #d98c1d; /* ホバー時の背景色 */
+}
+
+/* ポートフォリオページ */
+.portfolio-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0; /* 上下の余白をなくす */
+    text-align: center;
+}
+
+.portfolio-page p {
+    font-size: 1.2em; /* 文字サイズを大きくする */
+    line-height: 1.2; /* 行間を狭くする */
+    margin: 0.5em 0; /* 上下のマージンを調整する */
+}
+
+.screenshot img {
+    width: 50%;  /* 画像の幅を50%に設定 */
+    height: auto;  /* アスペクト比を維持 */
+}
+
+.project-links a {
+    font-size: 1.4em; /* 文字サイズを大きくする */
+    margin: 0 10px; /* 左右の間隔を設定 */
+    display: inline-block; /* 間隔を正しく適用するため */
+    transition: color 0.3s ease; /* 色の変化にトランジションを追加 */
+}
+
+.project-links a:hover {
+    color: #007bff; /* ホバー時の文字色を青に変更 */
+    text-decoration: underline; /* ホバー時に下線を追加 */
+}
+
+.project-links {
+    margin-bottom: 20px; /* ボタンとの間に間隔を追加 */
 }
 

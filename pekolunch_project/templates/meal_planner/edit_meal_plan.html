@@ -11,7 +11,7 @@
     <a href="{% url 'meal_planner:edit_meal_plan' previous_week_start previous_week_end %}?view_mode=weekly" class="btn btn-secondary">
         <i class="fas fa-chevron-left"></i> 前の週
     </a>
-    <h3>{{ date_range }}の1週間分の献立</h3>
+    <h3>{{ date_range }}の献立</h3>
     <a href="{% url 'meal_planner:edit_meal_plan' next_week_start next_week_end %}?view_mode=weekly" class="btn btn-secondary">
         次の週 <i class="fas fa-chevron-right"></i>
     </a>

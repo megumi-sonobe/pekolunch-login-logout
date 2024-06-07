@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポートフォリオ</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="portfolio-page">
+    <div class="container"></div>
+    <h1>作品No.1： peko Lunch</h1>
+    <div class="screenshot">
+        <img src="{{ MEDIA_URL }}screenshot.jpg" alt="アプリのスクショ">
+    </div>
+    <p>peko Lunchは、忙しい保護者に向けたお昼ご飯の献立の自動提案とレシピを提供するアプリケーションです。</p>
+    <p>このアプリは保護者の食事の準備に対する負担を減らし、より健康的で楽しい家庭生活をサポートします。</p>
+    <p>また、献立のマンネリ解消と栄養バランスの確保を目指します。</p>
+        <div class="project-links">
+            <a href="media/portfolio/peko_Lunch_企画書・画面設計図.pdf">企画書・画面設計図</a>
+            <a href="media/portfolio/peko_Lunch_画面遷移図.svg">画面遷移図</a>
+            <a href="media/portfolio/peko_Lunch_ER図.svg">ER図</a>
+        </div>
+        <div class="access-link">
+        <form action="{% url 'accounts:user_login' %}" method="get">
+            <button type="submit" class="btn btn-primary">アプリにアクセス</button>
+        </form>
+    </div>
+</body>
+</html>
