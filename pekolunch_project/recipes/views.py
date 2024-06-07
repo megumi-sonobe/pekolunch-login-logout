@@ -239,11 +239,11 @@ def search(request):
         recipes = recipes.filter(user=user)
     if 'three_star' in filters:
         recipes = recipes.filter(average_evaluation__gte=3)
-    if 'main_dish' in filters:
+    if 'staple' in filters:
         recipes = recipes.filter(menu_category=1)
-    if 'side_dish' in filters:
+    if 'main_dish' in filters:
         recipes = recipes.filter(menu_category=2)
-    if 'sub_dish' in filters:
+    if 'side_dish' in filters:
         recipes = recipes.filter(menu_category=3)
     if 'soup' in filters:
         recipes = recipes.filter(menu_category=4)
@@ -269,7 +269,8 @@ def search(request):
         'request': request,
     }
 
-    return render(request, 'meal_planner/recipe_list.html', context)
+    return render(request, 'recipes/recipe_list.html', context)
+
 class RecipeDetailView(LoginRequiredMixin, DetailView):
     model = Recipe
     template_name = 'recipes/recipe_detail.html'

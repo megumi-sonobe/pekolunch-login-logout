@@ -85,16 +85,16 @@
                 <label for="three_star">三つ星レシピ</label>
             </div>
             <div>
+                <input type="checkbox" id="staple" name="filter" value="staple" {% if 'staple' in request.GET.filter %}checked{% endif %}>
+                <label for="staple">主食</label>
+            </div>
+            <div>
                 <input type="checkbox" id="main_dish" name="filter" value="main_dish" {% if 'main_dish' in request.GET.filter %}checked{% endif %}>
-                <label for="main_dish">主食</label>
+                <label for="main_dish">主菜</label>
             </div>
             <div>
                 <input type="checkbox" id="side_dish" name="filter" value="side_dish" {% if 'side_dish' in request.GET.filter %}checked{% endif %}>
-                <label for="side_dish">主菜</label>
-            </div>
-            <div>
-                <input type="checkbox" id="sub_dish" name="filter" value="sub_dish" {% if 'sub_dish' in request.GET.filter %}checked{% endif %}>
-                <label for="sub_dish">副菜</label>
+                <label for="side_dish">副菜</label>
             </div>
             <div>
                 <input type="checkbox" id="soup" name="filter" value="soup" {% if 'soup' in request.GET.filter %}checked{% endif %}>
