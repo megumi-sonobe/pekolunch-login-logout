@@ -3,6 +3,7 @@
     margin: auto !important;
     max-width: 1200px !important;
 }
+
 /* ログイン画面 */
 .container-center {
     display: flex;
@@ -22,11 +23,12 @@
     width: 100%;
     margin: 20px auto;
 }
-
+/* ログイン・新規登録入力フォームの余白 */
 .form-group {
     margin-bottom: 15px; /* フォーム要素間の間隔を追加 */
 }
 
+/* ナビゲーションメニュー */
 .navbar {
     background-color: #eeeeee; /* 背景色の変更 */
     padding: 10px 20px; /* パディングの追加 */
@@ -50,21 +52,10 @@
     text-decoration: underline; /* ホバー時に下線を追加 */
 }
 
-.navbar-toggler {
-    border: none; /* トグルボタンのボーダーをなしに */
-}
-
-.navbar-toggler-icon {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%2855, 55, 55, 1%29' stroke-width='2' linecap='round' linejoin='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); /* トグルアイコンの色を調整 */
-}
 
 .welcome-message p {
     font-size: 1.2rem; /* ウェルカムメッセージの文字サイズ */
     font-weight: bold; /* ウェルカムメッセージの文字を太字に */
-}
-
-.navbar-nav .nav-item {
-    margin-right: 15px; /* 右側に15pxのマージンを追加 */
 }
 
 .navbar-nav .nav-item:last-child {
@@ -92,11 +83,11 @@ calendar {
     color: #FF0000; /* ホバー時の色を赤に変更 */
 }
 
-
+/* 献立作成ボタンのスタイル */
 #create-meal-plan-btn-container{
     text-align: center;
 }
-/* 献立作成ボタンのスタイル */
+
 .btn-primary {
     background-color:#f7b02d !important; /* 山吹色 */
     color: white !important;
@@ -116,7 +107,7 @@ calendar {
     text-align: center;
 }
 
-/* レジェンドのスタイル */
+/* カレンダー配色のスタイル */
 .legend-color {
     display: inline-block;
     width: 20px;
@@ -125,7 +116,7 @@ calendar {
     vertical-align: middle;
 }
 
-
+/* マイレシピのフードカテゴリーの枠 */
 #food-categories-container {
     max-height: 400px; /* 最大高さを設定してスクロールを可能にする */
     overflow-y: auto; /* 垂直スクロールを有効にする */
@@ -138,6 +129,7 @@ calendar {
     color: red;
 }
 
+/* 料理一覧ページのスタイル */
 .content-container{
     display:flex;
     justify-content:space-between;
@@ -179,6 +171,7 @@ calendar {
     height: auto;
 }
 
+/* 評価 */
 #rating-stars span:hover,
 #modal-rating-stars span:hover,
 #rating-stars span:hover ~ span,
@@ -197,7 +190,7 @@ calendar {
     margin-left: 10px;
 }
 
-
+/* レシピ詳細ページの材料欄 */
 .ingredients-table {
     width: 50%;
     border-collapse: collapse;
@@ -221,11 +214,8 @@ calendar {
     background-color: #f9f9f9;
 }
 
-.ingredients-table tr:hover {
-    background-color: #ddd;
-}
 
-
+/* マイページ */
 .profile-image {
     width: 200px;
     height: 200px;
@@ -280,32 +270,7 @@ calendar {
     background-color: #d32f2f;
 }
 
-.meal-plan-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
-.meal-plan {
-    padding: 20px;
-    margin: 20px;
-    width: 80%;
-}
-
-.meal-items {
-    display: flex;
-    justify-content: space-around;
-}
-
-.meal-item {
-    text-align: center;
-    width: 30%;
-}
-
-.meal-item img {
-    max-width: 100%;
-    height: auto;
-}
 
 /* 前の週次の週のボタン */
 .navigation-container {
@@ -347,6 +312,24 @@ calendar {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    align-items: center;
+}
+
+.meal-plan {
+    padding: 20px;
+    margin: 20px;
+    width: 80%;
+}
+
+.meal-item {
+    flex: 1;
+    text-align: center;
+    width: 30%;
+}
+
+.meal-item img {
+    max-width: 100%;
+    height: auto;
 }
 
 .meal-plan {
@@ -358,18 +341,14 @@ calendar {
 .meal-items {
     display: flex;
     gap: 20px;
-}
-
-.meal-item {
-    flex: 1;
-    text-align: center;
+    justify-content: space-around;
 }
 
 .meal-content {
     text-align: center;
 }
 
-/* 料理名を目立たせる */
+/* 献立編集画面の料理名を目立たせる */
 .recipe-name a {
     font-size: 1.4rem; /* フォントサイズを大きくする */
     font-weight: bold; /* 太字にする */
@@ -391,7 +370,7 @@ calendar {
     text-align: center; /* 中央揃え */
 }
 
-/* ボタンコンテナのスタイル調整 */
+/* 献立編集画面のスタイル */
 .button-container {
     display: flex;
     gap: 5px; /* ボタンの間隔を狭くする */
