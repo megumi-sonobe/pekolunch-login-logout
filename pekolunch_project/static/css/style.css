@@ -28,8 +28,21 @@
     margin-bottom: 15px; /* フォーム要素間の間隔を追加 */
 }
 
+html, body {
+    height: 100%;
+}
+
+body.has-navbar {
+    padding-top: 80px; 
+}
+
+.container {
+    padding-top: 70px; /* 固定ナビゲーションバーと重ならないようにパディングを追加 */
+}
+
 /* ナビゲーションメニュー */
 .navbar {
+    z-index: 1000;  /* ナビゲーションバーが常に最前面に表示されるようにする */
     background-color: #eeeeee; /* 背景色の変更 */
     padding: 10px 20px; /* パディングの追加 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* シャドウを追加して浮き上がらせる */
