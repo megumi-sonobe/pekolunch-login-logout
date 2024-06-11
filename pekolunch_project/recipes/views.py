@@ -114,6 +114,7 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
             self.object.save() 
             self.save_related_instances()
             self.save_user_evaluation()
+            messages.success(self.request, "レシピを更新しました。")
             return super().form_valid(form)
         except Exception as e:
             print(f"Exception occurred during form submission: {e}")

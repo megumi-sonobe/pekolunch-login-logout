@@ -23,6 +23,7 @@ class ProcessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['description'].label = ''
+        
 
     def save(self, commit=True):
         process = super().save(commit=False)
@@ -112,8 +113,13 @@ class RecipeForm(forms.ModelForm):
 
     def clean_recipe_name(self):
         recipe_name = self.cleaned_data.get('recipe_name')
-        if Recipe.objects.filter(recipe_name=recipe_name).exists():
-            raise forms.ValidationError("このレシピ名は既に存在します。別の名前を選んでください。")
+        # 更新時は同じ名前のレシピを許可、新規作成時は重複を許可しない
+        if self.instance and self.instance.pk:
+            if Recipe.objects.filter(recipe_name=recipe_name).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError("このレシピ名は既に存在します。別の名前を選んでください。")
+        else:
+            if Recipe.objects.filter(recipe_name=recipe_name).exists():
+                raise forms.ValidationError("このレシピ名は既に存在します。別の名前を選んでください。")
         return recipe_name
     
     def clean_menu_category(self):
