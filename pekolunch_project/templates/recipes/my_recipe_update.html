@@ -103,7 +103,7 @@
                     {% for process in recipe.process_set.all %}
                         <tr>
                             <td>{{ process.process_number }}</td>
-                            <td><input type="text" name="description" value="{{ process.description }}"></td>
+                            <td><input type="text" name="description" maxlength="255" value="{{ process.description }}"></td>
                             <td><button type="button" onclick="deleteRow(this)">削除</button></td>
                         </tr>
                     {% endfor %}
@@ -161,6 +161,7 @@
             var descriptionInput = document.createElement('input');
             descriptionInput.type = 'text';
             descriptionInput.name = 'description';
+            descriptionInput.maxLength = 255;
             descriptionCell.appendChild(descriptionInput);
             newRow.appendChild(descriptionCell);
 
