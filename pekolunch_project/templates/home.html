@@ -15,7 +15,18 @@
         <p>連続して7日間まで選択可能です。</p>
     </div>
 
-    <div class="row">
+    <div id="create-meal-plan-btn-container" class="mt-4">
+        <p id="selectedDateDisplay">献立を作成する日：</p> <!-- 選択された日付を表示するための要素 -->
+
+        <form id="dateForm" method="post" action="{% url 'meal_planner:create_meal_plans' %}">
+            {% csrf_token %}
+            <input type="hidden" id="startDate" name="start_date">
+            <input type="hidden" id="endDate" name="end_date">
+            <button type="submit" class="btn btn-primary">献立作成</button>
+        </form>
+    </div>
+
+    <div class="row mt-4">
         <div class="col-md-12">
             <div id='calendar'></div>
         </div>
@@ -32,17 +43,7 @@
             </div>
         </div>
     </div>
-
-    <div id="create-meal-plan-btn-container" class="mt-4">
-        <p id="selectedDateDisplay">献立を作成する日：</p> <!-- 選択された日付を表示するための要素 -->
-
-        <form id="dateForm" method="post" action="{% url 'meal_planner:create_meal_plans' %}">
-            {% csrf_token %}
-            <input type="hidden" id="startDate" name="start_date">
-            <input type="hidden" id="endDate" name="end_date">
-            <button type="submit" class="btn btn-primary">献立作成</button>
-        </form>
-    </div>
+    
 </div>
 {% endblock %}
 
