@@ -32,7 +32,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
             self.save_related_instances()
             self.save_user_evaluation()
             messages.success(self.request, f"レシピに「{self.object.recipe_name}」が登録されました。")
-            return redirect('recipes:my_recipe_create')
+            return redirect('recipes:my_recipe_list')  # リダイレクト先をマイレシピ一覧に変更
         except Exception as e:
             print(f"Exception occurred during form submission: {e}")
             return self.form_invalid(form)
@@ -77,6 +77,13 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
         context['food_categories'] = FoodCategory.objects.all()  # フードカテゴリーをデータベースから取得
         return context
 
+class MyRecipeListView(LoginRequiredMixin, ListView):
+    model = Recipe
+    template_name = 'recipes/my_recipe_list.html'
+    context_object_name = 'recipes'
+
+    def get_queryset(self):
+        return Recipe.objects.filter(user=self.request.user)
 
 class RecipeUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipe
@@ -158,7 +165,7 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
 class RecipeDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Recipe
     template_name = 'recipes/recipe_delete.html'
-    success_url = reverse_lazy('recipes:recipe_list')
+    success_url = reverse_lazy('recipes:my_recipe_list')
     success_message = "レシピが削除されました。"
 
     def get_queryset(self):

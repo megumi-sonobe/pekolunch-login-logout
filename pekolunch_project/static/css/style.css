@@ -395,6 +395,7 @@ calendar {
 .button-container {
     display: flex;
     gap: 5px; /* ボタンの間隔を狭くする */
+    margin: 20px 0;
     justify-content: center; /* ボタンを中央揃えにする */
 }
 
@@ -563,4 +564,3 @@ img {
 .project-links {
     margin-bottom: 20px; /* ボタンとの間に間隔を追加 */
 }
-

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    マイレシピ一覧 - peko Lunch
+{% endblock %}
+
+{% block content %}
+    <h2>マイレシピ一覧</h2>
+
+    <div class="button-container">
+        <a href="{% url 'recipes:my_recipe_create' %}" class="btn btn-primary">マイレシピを追加する</a>
+    </div>
+
+    <div class="recipe-grid">
+        {% for recipe in recipes %}
+            <div class="recipe-item">
+                <a href="{% url 'recipes:recipe_detail' recipe.id %}">
+                    {% if recipe.image_url %}
+                        <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
+                    {% else %}
+                        <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                    {% endif %}
+                    <p>{{ recipe.recipe_name }}</p>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
