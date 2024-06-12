@@ -477,10 +477,19 @@ def meal_plan_events(request):
     events = []
 
     for plan in meal_plans:
+        title = []
+        if plan.staple_recipe:
+            title.append(plan.staple_recipe.recipe_name)
+        if plan.main_recipe:
+            title.append(plan.main_recipe.recipe_name)
+        if plan.side_recipe:
+            title.append(plan.side_recipe.recipe_name)
+        if plan.soup_recipe:
+            title.append(plan.soup_recipe.recipe_name)
+
         events.append({
-            'title': '献立あり',
+            'title': ' | '.join(title) if title else '献立なし',
             'start': plan.meal_date.isoformat(),
-            'icon': 'fa-utensils',  # アイコンのクラスを指定
             'allDay': True
         })
 

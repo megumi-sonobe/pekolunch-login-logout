@@ -36,7 +36,7 @@
         <div class="col-md-12 mt-3">
             <div id="legend">
                 <ul class="list-inline">
-                    <li class="list-inline-item"><i class="fas fa-utensils"></i> すでに献立がある日</li>
+                    {% comment %} <li class="list-inline-item"><i class="fas fa-utensils"></i> すでに献立がある日</li> {% endcomment %}
                     <li class="list-inline-item"><span class="legend-color" style="background-color: #ffffcc;"></span> 今日</li>
                     <li class="list-inline-item"><span class="legend-color" style="background-color: #add8e6;"></span> 選択中の日</li>
                 </ul>
@@ -109,7 +109,8 @@
                             start: day,
                             allDay: true,
                             display: 'background',
-                            backgroundColor: '#add8e6', // 選択中の日付の背景色
+                            backgroundColor: '#add8e6', // 選択中の日付の背景色を水色に設定
+                            borderColor: 'transparent',  // ボーダー色を透明にして重なりを防ぐ
                             extendedProps: {
                                 selectEvent: true
                             }
@@ -117,12 +118,10 @@
                     });
                 },
                 eventContent: function(info) {
-                    return {
-                        html: '<i class="fas ' + info.event.extendedProps.icon + '" title="クリックして1週間の献立を見る"></i>'  // ツールチップを追加
-                    };
+                    const eventTitle = info.event.title.split(' | ').map(title => `<div>${title}</div>`).join('');
+                    return { html: eventTitle }; // タイトルを行ごとに分けて表示
                 },
                 eventDidMount: function(info) {
-                    info.el.style.backgroundColor = 'transparent';
                     adjustIconSize();  // アイコンサイズを調整
                 },
                 eventClick: function(info) {
@@ -136,25 +135,18 @@
 
                     window.location.href = weeklyMealPlanUrl;
                 },
-                dayMaxEvents: true,
+                dayMaxEvents: 5,  // 1日に表示できる最大イベント数を5に設定
                 selectOverlap: false,
             });
 
-            fetch("{% url 'meal_planner:meal_plan_dates' %}")
+            fetch("{% url 'meal_planner:meal_plan_events' %}")
                 .then(response => response.json())
-                .then(dates => {
-                    dates.forEach(date => {
-                        calendar.addEvent({
-                            start: date,
-                            allDay: true,
-                            display: 'background',
-                            extendedProps: {
-                                icon: 'fa-utensils'  // アイコンのクラス
-                            }
-                        });
+                .then(events => {
+                    events.forEach(event => {
+                        calendar.addEvent(event);
                     });
                 })
-                .catch(error => console.error('Error fetching meal plan dates:', error));
+                .catch(error => console.error('Error fetching meal plan events:', error));
 
             calendar.render();
 
@@ -175,3 +167,6 @@
     }
 </script>
 {% endblock %}
+
+
+
