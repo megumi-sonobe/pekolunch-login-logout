@@ -12,17 +12,21 @@
     </div>
 
     <div class="recipe-grid">
-        {% for recipe in recipes %}
-            <div class="recipe-item">
-                <a href="{% url 'recipes:recipe_detail' recipe.id %}">
-                    {% if recipe.image_url %}
-                        <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
-                    {% else %}
-                        <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
-                    {% endif %}
-                    <p>{{ recipe.recipe_name }}</p>
-                </a>
-            </div>
-        {% endfor %}
+        {% if recipes %}
+            {% for recipe in recipes %}
+                <div class="recipe-item">
+                    <a href="{% url 'recipes:recipe_detail' recipe.id %}">
+                        {% if recipe.image_url %}
+                            <img src="{{ recipe.image_url.url }}" alt="{{ recipe.recipe_name }}" width="150" height="150">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}default_recipe_image.jpg" alt="デフォルト画像" width="150" height="150">
+                        {% endif %}
+                        <p>{{ recipe.recipe_name }}</p>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-recipes-message">まだレシピが登録されていません。お気に入りのレシピを共有して、料理の楽しさを広げましょう！</p>
+        {% endif %}
     </div>
 {% endblock %}

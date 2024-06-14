@@ -564,3 +564,9 @@ img {
 .project-links {
     margin-bottom: 20px; /* ボタンとの間に間隔を追加 */
 }
+
+/* マイレシピ未登録の場合のメッセージ */
+.no-recipes-message {
+    white-space: nowrap;
+    text-align: center;
+}
